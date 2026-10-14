@@ -208,7 +208,7 @@ export default function Horas() {
           {!linhas.length && <p className="text-sm text-slate-500">Nenhuma hora lançada neste mês.</p>}
           <p className="text-xs text-slate-500">
             Clique numa pessoa para ver a folha dia a dia. Quando o dia não tem escala, vale o horário fixo da ficha.
-            {verFinanceiro && !tarifa && ' Para estimar a passagem, informe o valor por dia (Administrador → configurações: passagem_valor_dia).'}
+            {verFinanceiro && !tarifa && ' Para estimar a passagem, informe o valor por dia em Caixa → Regras.'}
           </p>
         </>
       )}

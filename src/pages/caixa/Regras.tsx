@@ -5,6 +5,7 @@ import { usePermissoes } from '../../lib/permissoes'
 import { lerMoeda } from '../../lib/formatos'
 import { FORMAS_CAIXA, type ChaveVenda } from '../../lib/caixa'
 import { Botao, Campo, Cartao, Mensagem, mensagemErro } from '../../components/ui'
+import { useConfiguracao } from '../../lib/hooks'
 import { useRegrasCaixa } from './dados'
 
 const txt = (n: number | undefined | null) => (n ? String(n).replace('.', ',') : '')
@@ -21,6 +22,9 @@ export default function RegrasCaixa() {
   const [dataSaldo, setDataSaldo] = useState('')
   const [saldoCaixa, setSaldoCaixa] = useState('')
   const [saldoFundo, setSaldoFundo] = useState('')
+  const passagemAtual = Number(useConfiguracao<number>('passagem_valor_dia', 0)) || 0
+  const [passagem, setPassagem] = useState('')
+  useEffect(() => setPassagem(txt(passagemAtual)), [passagemAtual])
 
   const assinatura = JSON.stringify(atual)
   useEffect(() => {
@@ -42,6 +46,7 @@ export default function RegrasCaixa() {
         },
         { chave: 'caixa_prazos', valor: { credito: Number(credito) || 0, debito: Number(debito) || 0 } },
         { chave: 'caixa_saldo_inicial', valor: { data: dataSaldo || null, caixa: lerMoeda(saldoCaixa) ?? 0, fundo: lerMoeda(saldoFundo) ?? 0 } },
+        { chave: 'passagem_valor_dia', valor: lerMoeda(passagem) ?? 0 },
       ]
       for (const l of linhas) {
         const { error } = await supabase.from('configuracoes').update({ valor: l.valor }).eq('chave', l.chave)
@@ -83,6 +88,17 @@ export default function RegrasCaixa() {
           <Campo rotulo="Caixa (R$)" inputMode="decimal" value={saldoCaixa} disabled={!ehAdmin} onChange={(e) => setSaldoCaixa(e.target.value)} />
           <Campo rotulo="Fundo de despesas (R$)" inputMode="decimal" value={saldoFundo} disabled={!ehAdmin} onChange={(e) => setSaldoFundo(e.target.value)} />
         </div>
+      </Cartao>
+      <Cartao titulo="Passagem dos colaboradores">
+        <Campo
+          rotulo="Valor por dia trabalhado (R$)"
+          className="max-w-xs"
+          inputMode="decimal"
+          value={passagem}
+          disabled={!ehAdmin}
+          onChange={(e) => setPassagem(e.target.value)}
+          ajuda="Usado na estimativa de passagem em Escalas e ponto → Horas do mês."
+        />
       </Cartao>
       {ehAdmin && (
         <div className="flex items-center gap-3">

@@ -192,18 +192,32 @@ Feito, publicado e com migration aplicada em produção (conferido com `scripts/
    pagamento, reabertura, exportar/imprimir), Mensalistas (saldo e acerto), Regras (só admin edita); card no painel.
    Também: logo em vetor (`src/components/LogoAcqua.tsx`) e login sem o aviso de remetente.
 
-Migrations aplicadas: `20261014010000` a `20261015020000`. Testes: Vitest (`ponto.test.ts`, `cafe.test.ts`...) + 6 arquivos de RLS.
+6. **Caixa** (16/10/2026) — dia por forma/bandeira (puxa as vendas de café sem redigitar), movimentos com responsável e
+   motivo, retirada para colaborador vira lançamento na ficha (gatilho `sincronizar_movimento_colaborador`), fundo de
+   despesas, mês, previsão de recebimentos, Regras (taxas, prazos, saldo inicial).
+7. **Compras** — fornecedores, catálogo por categoria, pedidos (lista por categoria para imprimir) e **Contas a pagar**
+   (módulo de permissão próprio `contas`; RH/operador não veem).
+8. **Cartão empresa** — só o final (4 dígitos), compras parceladas, faturas pelo dia de fechamento, pagamento.
+9. **Eventos e coffee break** — agenda, modelos com itens por pessoa, produtos avulsos, clientes, consumos, etapas,
+   equipe extra com diárias (`diarias.evento_id`), orçamento e lista de produção.
+10. **Documentos** — recibo de adiantamento/vale/diária, ocorrência, advertência, termo de domingo e folha-ponto, com
+   valor por extenso, html imutável, cópia assinada no bucket privado `documentos`; modelos e dados da empresa editáveis.
+11. **Painel financeiro** (`/financeiro`, permissão `contas`) — receita × despesa, resultado, margem, 6 quinzenas lado a
+   lado, por origem/categoria/fornecedor, próximos 30 dias, alertas. **Evitar contar duas vezes**: café pago entra pelo
+   caixa; parcela de cartão conta, a fatura paga não; retirada de caixa para colaborador é despesa do caixa, não da ficha.
+12. **Pente fino** (16/10/2026) — horário fixo e folgas na ficha (`horario_entrada/saida`, `intervalo_minutos`,
+   `dias_folga` 1=seg…7=dom); `escalaDoDia` usa o horário fixo quando o dia não tem escala; botão "Preencher pelo horário
+   fixo" (`gerar_escala_padrao`); aba **Horas do mês** (geral ou por pessoa, extras/noturnas/faltas/vales, CSV e
+   impressão para a contabilidade; passagem = dias × `passagem_valor_dia`); "Novo diarista"
+   (`/colaboradores/novo?vinculo=diarista`); ocorrência aprovada → "Gerar desconto" (`origem_tipo='ocorrencia'`); café
+   "Faturar para empresa" com `cafe_ajustes.cliente_id` (clientes de Eventos).
+
+Migrations aplicadas: `20261014010000` a `20261016060000`. Testes: Vitest (`src/lib/*.test.ts`) + RLS em `supabase/tests/`.
 
 **Planilhas reais da operação**: ficam em `planilhas-reais/` (ignorada pelo git, dados pessoais) com o resumo em
 `planilhas-reais/ANALISE.md`. Ler o resumo antes de desenhar caixa, compras, passagens e contabilidade.
 
-**Próximos módulos** (plano revisado com o dono em 15/10/2026, após as planilhas): 6) caixa — por dia e bandeira
-(crédito/débito Visa, Master, Amex, Elo; pix; dinheiro; conta assinada), taxas por bandeira (Regras), sangrias ligadas
-a colaborador/fornecedor, fundo de despesas com saldo, previsão de recebimentos (crédito D+30, débito D+1, conta
-assinada quinzenal), puxando as vendas de café sem redigitar; 7) compras e fornecedores (boletos/vencimentos, compras
-diárias, cartão empresa parcelado); 8) pessoas — passagens por dia escalado, comissões, descontos parcelados,
-relatório mensal para a contabilidade; 9) eventos/coffee break; 10) documentos; 11) aluguel ao hotel (% das vendas
-por fora, em Regras) e automações. Para cada módulo: migration + teste RLS em `supabase/tests/NN_modulo.sql`, telas em
+**Próximos passos**: aluguel ao hotel (% das vendas por fora, em Regras) e automações. Para cada módulo: migration + teste RLS em `supabase/tests/NN_modulo.sql`, telas em
 `src/pages/<modulo>/`, rota em `PAGINAS` (`App.tsx`), tirar `emBreve` em `src/lib/modulos.ts`, nomes em
 `NOMES_TABELAS`, commit + push, `bash scripts/conferir-deploy.sh` e `bash scripts/alertas-supabase.sh`, resumo de
 3 linhas ao dono.
@@ -216,7 +230,6 @@ por fora, em Regras) e automações. Para cada módulo: migration + teste RLS em
   tela do módulo deve abrir o formulário ao ver esse parâmetro.
 - `public.controlar_situacao('<modulo>')` (gatilho): exige permissão para aprovar/cancelar, carimba quem aprovou e
   bloqueia mudanças em registro cancelado. Tabela precisa de `situacao`, `aprovado_por`, `aprovado_em`.
-- `diarias.evento_id` ainda não existe: criar no módulo de eventos (FK para `eventos`).
 - `src/components/registros.tsx`: `SeloSituacao` e `JanelaCancelar` (motivo obrigatório).
 
 **Ambiente de teste** (não fica no repositório): o Postgres local é instalado com
@@ -233,6 +246,8 @@ temporário, com sessão falsa no `localStorage` (`sb-wiocgyawzwuaqcunubrw-auth-
 - SMTP do Gmail para os e-mails saírem de acquabistromercure@gmail.com (passo a passo já enviado ao dono; modelo do
   e-mail em `docs/email-recuperacao-senha.html`).
 - Preencher Café da manhã → Regras (valor por café, % garantido, itens do borderô, preços, quem libera).
+- Preencher Caixa → Regras (taxas por bandeira, prazos, saldo inicial), Documentos → Modelos (CNPJ/endereço da
+  empresa), passagem por dia (Caixa → Regras) e o horário fixo/folgas de cada colaborador.
 - Logo: hoje é um redesenho em vetor (`LogoAcqua.tsx`, "Bistrô" na fonte Waterfall); trocar pelo arquivo original se chegar.
 
 ## Roadmap (briefing, seção 16)
