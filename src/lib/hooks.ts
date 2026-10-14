@@ -14,6 +14,19 @@ export function useNomesUsuarios() {
   return (id: string | null | undefined) => (id ? q.data?.get(id) ?? '…' : 'Sistema')
 }
 
+/** Valor de uma configuração (tabela "configuracoes"), com um padrão enquanto carrega ou se não existir. */
+export function useConfiguracao<T>(chave: string, padrao: T): T {
+  const q = useQuery({
+    queryKey: ['config', chave],
+    queryFn: async () => {
+      const { data } = await supabase.from('configuracoes').select('valor').eq('chave', chave).maybeSingle()
+      return (data?.valor as T | undefined) ?? null
+    },
+    staleTime: 10 * 60_000,
+  })
+  return q.data ?? padrao
+}
+
 /** Lista de turnos configurada pelo administrador. */
 export function useTurnos() {
   const q = useQuery({

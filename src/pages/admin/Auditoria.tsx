@@ -27,6 +27,9 @@ export const NOMES_TABELAS: Record<string, string> = {
   ocorrencias: 'Ocorrências',
   lancamentos_colaborador: 'Financeiro do colaborador',
   diarias: 'Diárias',
+  escalas: 'Escalas',
+  registros_ponto: 'Ponto',
+  fechamentos_ponto: 'Fechamentos da folha-ponto',
 }
 
 const POR_PAGINA = 50

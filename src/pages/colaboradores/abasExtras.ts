@@ -1,5 +1,7 @@
 import type { ComponentType } from 'react'
 import type { Colaborador } from './tipos'
+import AbaEscalaFicha from '../escalas/AbaEscalaFicha'
+import AbaPontoFicha from '../escalas/AbaPontoFicha'
 
 /**
  * Abas da ficha que pertencem a outros módulos (escala, ponto, documentos).
@@ -7,4 +9,7 @@ import type { Colaborador } from './tipos'
  */
 export type AbaExtra = { valor: string; rotulo: string; modulo: string; Componente: ComponentType<{ colaborador: Colaborador }> }
 
-export const ABAS_EXTRAS: AbaExtra[] = []
+export const ABAS_EXTRAS: AbaExtra[] = [
+  { valor: 'escala', rotulo: 'Escala', modulo: 'escalas', Componente: AbaEscalaFicha },
+  { valor: 'ponto', rotulo: 'Ponto e horas', modulo: 'ponto', Componente: AbaPontoFicha },
+]

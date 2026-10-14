@@ -9,6 +9,17 @@
   body {
     @apply bg-acqua-gelo font-sans text-acqua-profundo;
   }
+  /* Impressão (escala, folha-ponto, documentos): fundo branco, sem menu e cores preservadas. */
+  @media print {
+    @page {
+      margin: 10mm;
+    }
+    body {
+      @apply bg-white;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+  }
 }
 
 @layer components {

@@ -91,7 +91,7 @@ export default function LayoutApp() {
   return (
     <div className="min-h-screen bg-acqua-gelo lg:flex">
       {/* Menu fixo no computador */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-acqua-suave bg-white lg:flex">
+      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-acqua-suave bg-white lg:flex print:!hidden">
         <div className="px-6 pb-2 pt-5">
           <img src={logo} alt="Acqua Bistrô" className="h-16" />
           <p className="mt-2 text-[10px] uppercase tracking-[0.3em] text-acqua-titulo">Sistema administrativo</p>
@@ -121,7 +121,7 @@ export default function LayoutApp() {
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Topo */}
         <header
-          className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-acqua-suave bg-white/90 px-4 backdrop-blur sm:px-6"
+          className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-acqua-suave bg-white/90 px-4 backdrop-blur sm:px-6 print:hidden"
           style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
         >
           <button onClick={() => setMenuAberto(true)} className="rounded-lg p-2 text-acqua-titulo hover:bg-acqua-suave lg:hidden" aria-label="Abrir menu">
