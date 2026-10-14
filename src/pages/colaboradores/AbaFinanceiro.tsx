@@ -37,7 +37,7 @@ export function resumirLancamentos(lista: Pick<Lancamento, 'valor' | 'situacao' 
   }
 }
 
-const ORIGENS: Record<string, string> = { retirada_caixa: 'Retirada do caixa', diaria: 'Diária aprovada' }
+const ORIGENS: Record<string, string> = { retirada_caixa: 'Retirada do caixa', caixa_movimento: 'Retirada do caixa', diaria: 'Diária aprovada' }
 
 export default function AbaFinanceiro({ colaborador }: { colaborador: Colaborador }) {
   const qc = useQueryClient()

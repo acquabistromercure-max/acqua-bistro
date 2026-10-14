@@ -36,6 +36,8 @@ export const NOMES_TABELAS: Record<string, string> = {
   cafe_mensalistas: 'Mensalistas do café',
   cafe_vendas: 'Cafés pagos na hora',
   quinzenas_hotel: 'Quinzenas com o hotel',
+  caixa_dias: 'Caixa (dia)',
+  caixa_movimentos: 'Entradas e saídas de dinheiro',
 }
 
 const POR_PAGINA = 50

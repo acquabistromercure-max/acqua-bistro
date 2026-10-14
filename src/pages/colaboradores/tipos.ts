@@ -63,6 +63,8 @@ export const TIPOS_LANCAMENTO = [
   { valor: 'adiantamento', rotulo: 'Adiantamento' },
   { valor: 'pagamento', rotulo: 'Pagamento' },
   { valor: 'diaria', rotulo: 'Diária' },
+  { valor: 'passagem', rotulo: 'Passagem' },
+  { valor: 'comissao', rotulo: 'Comissão' },
   { valor: 'desconto', rotulo: 'Desconto' },
   { valor: 'outro', rotulo: 'Outro' },
 ]
