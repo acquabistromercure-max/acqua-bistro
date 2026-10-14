@@ -6,7 +6,7 @@ import { usePermissoes } from '../../lib/permissoes'
 import { formatarData, hojeISO } from '../../lib/formatos'
 import { useNomesUsuarios } from '../../lib/hooks'
 import { AreaTexto, Botao, Campo, Carregando, Janela, Mensagem, Selecao, Tabela, mensagemErro } from '../../components/ui'
-import { JanelaCancelar, SeloSituacao } from '../../components/registros'
+import { BotaoExcluir, JanelaCancelar, SeloSituacao } from '../../components/registros'
 import { TIPOS_OCORRENCIA, rotulo, type Colaborador } from './tipos'
 
 export type Ocorrencia = {
@@ -99,16 +99,24 @@ export default function AbaOcorrencias({ colaborador }: { colaborador: Colaborad
           aoFechar={() => setAberta(null)}
           titulo={`${rotulo(TIPOS_OCORRENCIA, aberta.tipo)} de ${formatarData(aberta.data)}`}
           rodape={
-            aberta.situacao !== 'cancelada' && (
-              <>
-                {pode('ocorrencias', 'cancelar') && (
-                  <Botao variante="perigo" className="mr-auto" onClick={() => setCancelando(true)}>Cancelar</Botao>
-                )}
-                {aberta.situacao === 'registrada' && pode('ocorrencias', 'aprovar') && (
-                  <Botao carregando={mudar.isPending} onClick={() => mudar.mutate({ situacao: 'aprovada' })}>Aprovar</Botao>
-                )}
-              </>
-            )
+            <>
+              <BotaoExcluir
+                modulo="ocorrencias"
+                tabela="ocorrencias"
+                id={aberta.id}
+                descricao={`a ocorrência de ${formatarData(aberta.data)}`}
+                aoExcluir={() => {
+                  setAberta(null)
+                  atualizar()
+                }}
+              />
+              {aberta.situacao !== 'cancelada' && pode('ocorrencias', 'cancelar') && (
+                <Botao variante="perigo" onClick={() => setCancelando(true)}>Cancelar</Botao>
+              )}
+              {aberta.situacao === 'registrada' && pode('ocorrencias', 'aprovar') && (
+                <Botao carregando={mudar.isPending} onClick={() => mudar.mutate({ situacao: 'aprovada' })}>Aprovar</Botao>
+              )}
+            </>
           }
         >
           <div className="space-y-2 text-sm">

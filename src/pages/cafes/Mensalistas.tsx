@@ -6,6 +6,7 @@ import { usePermissoes } from '../../lib/permissoes'
 import { formatarData, formatarMoeda, hojeISO } from '../../lib/formatos'
 import { BANDEIRAS, FORMAS } from '../../lib/cafe'
 import { Botao, Campo, Carregando, Janela, Mensagem, Selecao, Selo, Tabela, mensagemErro } from '../../components/ui'
+import { BotaoExcluir } from '../../components/registros'
 import { useMensalistas, type Mensalista, type Venda } from './dados'
 
 /** Hóspedes de longa estadia: cafés anotados, saldo a receber e acerto de uma vez. */
@@ -140,6 +141,14 @@ function Acerto({ mensalista, lancamentos, aoFechar, aoSalvar }: { mensalista: M
       largura="max-w-xl"
       rodape={
         <>
+          <BotaoExcluir
+            modulo="cafes"
+            tabela="cafe_mensalistas"
+            id={mensalista.id}
+            descricao={`o mensalista ${mensalista.nome}`}
+            aoExcluir={aoSalvar}
+            className=""
+          />
           {pode('cafes', 'editar') && (
             <Botao variante="fantasma" className="mr-auto" carregando={encerrar.isPending} onClick={() => encerrar.mutate()}>
               {mensalista.ativo ? 'Encerrar estadia' : 'Reativar'}

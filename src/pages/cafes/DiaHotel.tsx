@@ -6,6 +6,7 @@ import { usePermissoes } from '../../lib/permissoes'
 import { formatarMoeda } from '../../lib/formatos'
 import { cafesGarantidos, tickets, totalDia } from '../../lib/cafe'
 import { Botao, Campo, Cartao, Mensagem, mensagemErro } from '../../components/ui'
+import { BotaoExcluir } from '../../components/registros'
 import type { CafeDia, RegrasCafe } from './dados'
 
 /** Quadro do hotel no dia: hóspedes da lista e cafés servidos → garantido, tickets e total a cobrar. */
@@ -85,6 +86,18 @@ export default function DiaHotel({
         <p className="mt-2 text-xs text-slate-500">
           ({previa.cafes_servidos} servidos + {tickets(previa)} tickets) × {formatarMoeda(base.valor_cafe)}
         </p>
+      )}
+      {registro && !travado && (
+        <div className="mt-3 flex justify-end">
+          <BotaoExcluir
+            modulo="cafes"
+            tabela="cafe_dias"
+            id={registro.id}
+            descricao="o lançamento do hotel deste dia"
+            className=""
+            aoExcluir={() => qc.invalidateQueries({ queryKey: ['cafe_dias'] })}
+          />
+        </div>
       )}
       {salvar.isSuccess && !alterado && <div className="mt-3"><Mensagem tipo="sucesso">Dia salvo.</Mensagem></div>}
       {salvar.error && <div className="mt-3"><Mensagem tipo="erro">{mensagemErro(salvar.error)}</Mensagem></div>}

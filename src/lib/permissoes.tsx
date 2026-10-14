@@ -4,7 +4,7 @@ import { supabase } from './supabase'
 import { useAuth } from './auth'
 
 export type Papel = 'administrador' | 'gerente' | 'financeiro' | 'rh' | 'operador' | 'consulta'
-export type Acao = 'ver' | 'criar' | 'editar' | 'aprovar' | 'cancelar' | 'exportar'
+export type Acao = 'ver' | 'criar' | 'editar' | 'aprovar' | 'cancelar' | 'exportar' | 'excluir'
 
 export const PAPEIS: { valor: Papel; rotulo: string; descricao: string }[] = [
   { valor: 'administrador', rotulo: 'Administrador', descricao: 'Usuários, permissões, configurações e auditoria' },
@@ -22,6 +22,7 @@ export const ACOES: { valor: Acao; rotulo: string }[] = [
   { valor: 'aprovar', rotulo: 'Aprovar' },
   { valor: 'cancelar', rotulo: 'Cancelar' },
   { valor: 'exportar', rotulo: 'Exportar' },
+  { valor: 'excluir', rotulo: 'Excluir' },
 ]
 
 export function rotuloPapel(papel: string | null | undefined) {

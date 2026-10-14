@@ -4,6 +4,7 @@ import { Lock } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { usePermissoes } from '../../lib/permissoes'
 import { Botao, Campo, Cartao, Carregando, Mensagem, Selecao, mensagemErro } from '../../components/ui'
+import { BotaoExcluir } from '../../components/registros'
 import type { Colaborador } from './tipos'
 
 const CAMPOS = ['banco', 'agencia', 'conta', 'tipo_conta', 'titular', 'pix_tipo', 'pix_chave'] as const
@@ -85,11 +86,22 @@ export default function AbaBancarios({ colaborador }: { colaborador: Colaborador
       </div>
       {salvar.error && <div className="mt-3"><Mensagem tipo="erro">{mensagemErro(salvar.error)}</Mensagem></div>}
       {salvo && <div className="mt-3"><Mensagem tipo="sucesso">Dados bancários salvos.</Mensagem></div>}
-      {podeEditar && (
-        <div className="mt-4 flex justify-end">
-          <Botao carregando={salvar.isPending} onClick={() => salvar.mutate()}>Salvar</Botao>
-        </div>
-      )}
+      <div className="mt-4 flex justify-end gap-2">
+        {dados.data && (
+          <BotaoExcluir
+            modulo="dados_bancarios"
+            tabela="colaboradores_bancarios"
+            coluna="colaborador_id"
+            id={colaborador.id}
+            descricao={`os dados bancários de ${colaborador.nome}`}
+            aoExcluir={() => {
+              setF(Object.fromEntries(CAMPOS.map((c) => [c, ''])) as Dados)
+              qc.invalidateQueries({ queryKey: ['bancarios', colaborador.id] })
+            }}
+          />
+        )}
+        {podeEditar && <Botao carregando={salvar.isPending} onClick={() => salvar.mutate()}>Salvar</Botao>}
+      </div>
     </Cartao>
   )
 }

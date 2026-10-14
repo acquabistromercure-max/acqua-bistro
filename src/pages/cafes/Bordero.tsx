@@ -6,7 +6,7 @@ import { usePermissoes } from '../../lib/permissoes'
 import { useNomesUsuarios } from '../../lib/hooks'
 import { formatarDataHora, formatarMoeda, lerMoeda } from '../../lib/formatos'
 import { Botao, Campo, Cartao, Janela, Mensagem, Selo, Tabela, Vazio, cx, mensagemErro } from '../../components/ui'
-import { JanelaCancelar, SeloSituacao } from '../../components/registros'
+import { BotaoExcluir, JanelaCancelar, SeloSituacao } from '../../components/registros'
 import type { ConsumoQuarto, ItemBordero } from './dados'
 
 /** Borderô: consumo lançado na conta do quarto e entregue à recepção. */
@@ -88,12 +88,22 @@ export default function Bordero({ data, lista, itens, travado }: { data: string;
           aoFechar={() => setAberto(null)}
           titulo={`Apto ${aberto.apartamento} · ${aberto.item}`}
           rodape={
-            aberto.situacao !== 'cancelado' && !travado && (
+            !travado && (
               <>
-                {pode('cafes', 'cancelar') && (
-                  <Botao variante="perigo" className="mr-auto" onClick={() => setCancelando(true)}>Cancelar / estornar</Botao>
+                <BotaoExcluir
+                  modulo="cafes"
+                  tabela="consumos_quarto"
+                  id={aberto.id}
+                  descricao={`o consumo do apto ${aberto.apartamento} (${aberto.item})`}
+                  aoExcluir={() => {
+                    setAberto(null)
+                    atualizar()
+                  }}
+                />
+                {aberto.situacao !== 'cancelado' && pode('cafes', 'cancelar') && (
+                  <Botao variante="perigo" onClick={() => setCancelando(true)}>Cancelar / estornar</Botao>
                 )}
-                {aberto.entregue_recepcao ? (
+                {aberto.situacao === 'cancelado' ? null : aberto.entregue_recepcao ? (
                   <Botao variante="secundario" carregando={mudar.isPending} onClick={() => mudar.mutate({ entregue_recepcao: false })}>
                     Desfazer entrega
                   </Botao>

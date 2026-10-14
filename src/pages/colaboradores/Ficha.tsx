@@ -14,6 +14,7 @@ import AbaFinanceiro from './AbaFinanceiro'
 import AbaDiarias from './AbaDiarias'
 import AbaLinhaDoTempo from './AbaLinhaDoTempo'
 import { ABAS_EXTRAS } from './abasExtras'
+import ExcluirColaborador from './ExcluirColaborador'
 
 function Info({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return (
@@ -64,6 +65,7 @@ export default function Ficha() {
           <Botao variante="secundario" icone={<ArrowLeft className="h-4 w-4" />} onClick={() => navigate('/colaboradores')}>
             Voltar
           </Botao>
+          <ExcluirColaborador colaborador={col} />
           {pode('colaboradores', 'editar') && (
             <Botao icone={<Pencil className="h-4 w-4" />} onClick={() => navigate(`/colaboradores/${col.id}/editar`)}>
               Editar

@@ -6,7 +6,7 @@ import { usePermissoes } from '../../lib/permissoes'
 import { formatarData, formatarMoeda, hojeISO, lerMoeda } from '../../lib/formatos'
 import { useNomesUsuarios, useTurnos } from '../../lib/hooks'
 import { AreaTexto, Botao, Campo, Carregando, Janela, Mensagem, Selecao, Tabela, mensagemErro } from '../../components/ui'
-import { JanelaCancelar, SeloSituacao } from '../../components/registros'
+import { BotaoExcluir, JanelaCancelar, SeloSituacao } from '../../components/registros'
 import type { Colaborador } from './tipos'
 
 export type Diaria = {
@@ -107,16 +107,24 @@ export default function DiariasLista({ colaborador, inicio, fim }: { colaborador
           aoFechar={() => setAberta(null)}
           titulo={`Diária de ${formatarData(aberta.data)}`}
           rodape={
-            !['cancelada', 'paga'].includes(aberta.situacao) && (
-              <>
-                {pode('colaboradores', 'cancelar') && (
-                  <Botao variante="perigo" className="mr-auto" onClick={() => setCancelando(true)}>Cancelar</Botao>
-                )}
-                {proxima && pode('colaboradores', proxima.acao) && (
-                  <Botao carregando={mudar.isPending} onClick={() => mudar.mutate({ situacao: proxima.situacao })}>{proxima.rotulo}</Botao>
-                )}
-              </>
-            )
+            <>
+              <BotaoExcluir
+                modulo="colaboradores"
+                tabela="diarias"
+                id={aberta.id}
+                descricao={`a diária de ${formatarData(aberta.data)}`}
+                aoExcluir={() => {
+                  setAberta(null)
+                  atualizar()
+                }}
+              />
+              {!['cancelada', 'paga'].includes(aberta.situacao) && pode('colaboradores', 'cancelar') && (
+                <Botao variante="perigo" onClick={() => setCancelando(true)}>Cancelar</Botao>
+              )}
+              {!['cancelada', 'paga'].includes(aberta.situacao) && proxima && pode('colaboradores', proxima.acao) && (
+                <Botao carregando={mudar.isPending} onClick={() => mudar.mutate({ situacao: proxima.situacao })}>{proxima.rotulo}</Botao>
+              )}
+            </>
           }
         >
           <div className="space-y-1 text-sm">

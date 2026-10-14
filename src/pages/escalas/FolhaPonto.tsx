@@ -8,6 +8,7 @@ import { formatarData, formatarDataHora, formatarMinutos, hojeISO } from '../../
 import { baixarCSV } from '../../lib/exportar'
 import { NOMES_DIAS, diaDaSemana, diasDoMes, horaCurta, linhaDoDia, resumoEscala, totalizar, type LinhaFolha } from '../../lib/ponto'
 import { AreaTexto, Botao, Campo, Cartao, Carregando, Confirmar, Janela, Mensagem, Selecao, Selo, Vazio, cx, mensagemErro } from '../../components/ui'
+import { BotaoExcluir } from '../../components/registros'
 import { chaveDia, porDia, useEscalas, usePessoasEscala, useRegistrosPonto, useRegrasPonto, type Fechamento } from './dados'
 
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
@@ -234,6 +235,14 @@ export default function FolhaPonto({ colaboradorId: fixo }: { colaboradorId?: st
                       por {nome(f.fechado_por)} em {formatarDataHora(f.fechado_em)}
                       {f.reaberto_em && ` · reaberto por ${nome(f.reaberto_por)} em ${formatarDataHora(f.reaberto_em)}: ${f.motivo_reabertura}`}
                     </span>
+                    <BotaoExcluir
+                      modulo="ponto"
+                      tabela="fechamentos_ponto"
+                      id={f.id}
+                      descricao={`o fechamento de ${nomeCompetencia(f.competencia)}`}
+                      aoExcluir={atualizar}
+                      className="ml-auto"
+                    />
                   </li>
                 ))}
               </ul>

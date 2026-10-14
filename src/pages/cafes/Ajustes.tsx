@@ -7,7 +7,7 @@ import { useNomesUsuarios } from '../../lib/hooks'
 import { formatarMoeda } from '../../lib/formatos'
 import { MOTIVOS_AJUSTE } from '../../lib/cafe'
 import { AreaTexto, Botao, Campo, Cartao, Janela, Mensagem, Selecao, Tabela, Vazio, cx, mensagemErro } from '../../components/ui'
-import { JanelaCancelar, SeloSituacao } from '../../components/registros'
+import { BotaoExcluir, JanelaCancelar, SeloSituacao } from '../../components/registros'
 import type { Ajuste } from './dados'
 
 const rotuloMotivo = (m: string) => MOTIVOS_AJUSTE.find((x) => x.valor === m)?.rotulo ?? m
@@ -31,6 +31,7 @@ export default function Ajustes({
   const nome = useNomesUsuarios()
   const [novo, setNovo] = useState(false)
   const [aberto, setAberto] = useState<Ajuste | null>(null)
+  const [cancelando, setCancelando] = useState(false)
 
   const cancelar = useMutation({
     mutationFn: async (motivo: string) => {
@@ -39,6 +40,7 @@ export default function Ajustes({
     },
     onSuccess: () => {
       setAberto(null)
+      setCancelando(false)
       qc.invalidateQueries({ queryKey: ['cafe_ajustes'] })
     },
   })
@@ -98,17 +100,52 @@ export default function Ajustes({
           }}
         />
       )}
-      {aberto && (
-        <JanelaCancelar
-          aberta={pode('cafes', 'cancelar') && !travado && aberto.situacao !== 'cancelado'}
-          titulo={`Cancelar ajuste do apto ${aberto.apartamento}`}
-          aviso={`${rotuloMotivo(aberto.motivo)} — ${formatarMoeda(aberto.total)}. Lançado por ${nome(aberto.criado_por)}. ${aberto.descricao ?? ''}`}
-          carregando={cancelar.isPending}
-          erro={cancelar.error}
+      {aberto && !cancelando && (
+        <Janela
+          aberta
           aoFechar={() => setAberto(null)}
-          aoConfirmar={(m) => cancelar.mutate(m)}
-        />
+          titulo={`Apto ${aberto.apartamento} · ${rotuloMotivo(aberto.motivo)}`}
+          rodape={
+            !travado && (
+              <>
+                <BotaoExcluir
+                  modulo="cafes"
+                  tabela="cafe_ajustes"
+                  id={aberto.id}
+                  descricao={`o ajuste do apto ${aberto.apartamento}`}
+                  aoExcluir={() => {
+                    setAberto(null)
+                    qc.invalidateQueries({ queryKey: ['cafe_ajustes'] })
+                  }}
+                />
+                {aberto.situacao !== 'cancelado' && pode('cafes', 'cancelar') && (
+                  <Botao variante="perigo" onClick={() => setCancelando(true)}>Cancelar</Botao>
+                )}
+              </>
+            )
+          }
+        >
+          <div className="space-y-1 text-sm">
+            <p>
+              {aberto.quantidade} × {formatarMoeda(aberto.valor_unitario)} = <b>{formatarMoeda(aberto.total)}</b>
+            </p>
+            {aberto.hospede && <p>Hóspede(s): {aberto.hospede}</p>}
+            {aberto.autorizado_por && <p>Liberado por {aberto.autorizado_por}</p>}
+            {aberto.descricao && <p>{aberto.descricao}</p>}
+            <p className="text-xs text-slate-500">Lançado por {nome(aberto.criado_por)}</p>
+            {aberto.motivo_cancelamento && <p className="text-slate-500">Cancelado: {aberto.motivo_cancelamento}</p>}
+            {travado && <p className="text-xs text-slate-500">Quinzena enviada: para mudar, reabra a quinzena.</p>}
+          </div>
+        </Janela>
       )}
+      <JanelaCancelar
+        aberta={cancelando}
+        titulo={`Cancelar ajuste do apto ${aberto?.apartamento ?? ''}`}
+        carregando={cancelar.isPending}
+        erro={cancelar.error}
+        aoFechar={() => setCancelando(false)}
+        aoConfirmar={(m) => cancelar.mutate(m)}
+      />
     </Cartao>
   )
 }

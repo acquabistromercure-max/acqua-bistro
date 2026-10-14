@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { PAPEIS } from '../../lib/permissoes'
 import type { Frequencia } from '../../lib/periodos'
 import { Botao, Campo, Janela, Mensagem, Selecao, Selo, mensagemErro } from '../../components/ui'
+import { BotaoExcluir } from '../../components/registros'
 import type { Tarefa } from './Rotina'
 
 const OPCOES_FREQ = [
@@ -89,6 +90,7 @@ export default function GerenciarTarefas({ aoFechar }: { aoFechar: () => void })
               </p>
             </div>
             {!t.ativo && <Selo>Desativada</Selo>}
+            <BotaoExcluir modulo="painel" tabela="rotina_tarefas" id={t.id} descricao={`a tarefa “${t.titulo}”`} aoExcluir={atualizar} className="" />
             <Botao variante="secundario" onClick={() => alternar.mutate(t)} disabled={alternar.isPending}>
               {t.ativo ? 'Desativar' : 'Reativar'}
             </Botao>

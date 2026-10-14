@@ -6,7 +6,7 @@ import { useNomesUsuarios } from '../../lib/hooks'
 import { formatarData, formatarDataHora, formatarMinutos } from '../../lib/formatos'
 import { horaCurta, minutosTrabalhados, resumoEscala } from '../../lib/ponto'
 import { AreaTexto, Botao, Campo, Janela, Mensagem, mensagemErro } from '../../components/ui'
-import { JanelaCancelar, SeloSituacao } from '../../components/registros'
+import { BotaoExcluir, JanelaCancelar, SeloSituacao } from '../../components/registros'
 import { nomeCurto, type Escala, type Pessoa, type RegistroPonto } from './dados'
 
 /** Lançar ou ajustar a marcação de ponto de um dia; aprovar ou cancelar. */
@@ -90,8 +90,20 @@ export default function JanelaPonto({
         titulo={`Ponto · ${nomeCurto(pessoa)} · ${formatarData(data)}`}
         rodape={
           <>
+            {registro && (
+              <BotaoExcluir
+                modulo="ponto"
+                tabela="registros_ponto"
+                id={registro.id}
+                descricao={`a marcação de ponto de ${formatarData(data)}`}
+                aoExcluir={() => {
+                  atualizar()
+                  aoFechar()
+                }}
+              />
+            )}
             {registro && pode('ponto', 'cancelar') && (
-              <Botao variante="perigo" className="mr-auto" onClick={() => setCancelando(true)}>Cancelar marcação</Botao>
+              <Botao variante="perigo" onClick={() => setCancelando(true)}>Cancelar marcação</Botao>
             )}
             <Botao variante="secundario" onClick={aoFechar}>Fechar</Botao>
             {aprovavel && (

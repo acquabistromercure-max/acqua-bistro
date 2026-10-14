@@ -428,6 +428,7 @@ export function mensagemErro(erro: unknown): string {
     return 'Você não tem permissão para fazer isso.'
   }
   if (e.code === '23505') return 'Já existe um registro com esses dados.'
+  if (e.code === '23503') return 'Não dá para excluir: há outros registros ligados a este. Exclua esses registros antes.'
   if (e.code === '23514') return 'Algum valor está fora do permitido. Confira os campos.'
   return e.message ?? 'Algo deu errado. Tente novamente.'
 }

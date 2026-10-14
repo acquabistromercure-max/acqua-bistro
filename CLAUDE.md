@@ -112,7 +112,13 @@ e documentos. Especificação completa em `docs/Briefing_Completo_Acqua_Bistro.p
   linhas padrão na migration e o módulo em `MODULOS_PERMISSAO`.
 - Tabelas sensíveis recebem o gatilho `registrar_auditoria()` (tabela `auditoria`, só leitura, ninguém apaga).
   Incluir o nome amigável em `NOMES_TABELAS` (`src/pages/admin/Auditoria.tsx`).
-- Nada é apagado em registros operacionais: usar status `cancelado` + motivo.
+- Correção normal = status `cancelado` + motivo. **Excluir** (pedido do dono em 15/10/2026) é para o que foi criado por
+  engano: ação de permissão `excluir` (Administrador sempre; outros papéis só se liberados na tela Permissões), botão
+  `BotaoExcluir` (`src/components/registros.tsx`) em toda janela de registro, política `for delete` em toda tabela nova,
+  e a cópia fica no Histórico (gatilho de auditoria). Períodos fechados (quinzena enviada, folha-ponto fechada) também
+  bloqueiam exclusão. Colaborador: `excluir_colaborador()` apaga junto escalas, ponto, ocorrências, financeiro, diárias e
+  bancários (mostra a contagem antes). Usuários do sistema não são excluídos: desativar.
+- Módulos novos: toda tabela precisa de política de delete com `privado.pode('<modulo>', 'excluir')` e botão Excluir.
 - Regras ainda não validadas ficam na tabela `configuracoes` (chave/valor), editável pelo admin.
 - Funções `security definer` sempre com `set search_path = ''` e `revoke execute ... from public, anon`.
   Funções auxiliares de RLS ficam no schema `privado` (não exposto pela API): `privado.pode`, `privado.usuario_ativo`,

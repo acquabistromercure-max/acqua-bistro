@@ -6,7 +6,7 @@ import { usePermissoes } from '../../lib/permissoes'
 import { formatarData, formatarMoeda, hojeISO, lerMoeda } from '../../lib/formatos'
 import { useNomesUsuarios } from '../../lib/hooks'
 import { Botao, Campo, Carregando, Janela, Mensagem, Selecao, Tabela, mensagemErro } from '../../components/ui'
-import { JanelaCancelar, SeloSituacao } from '../../components/registros'
+import { BotaoExcluir, JanelaCancelar, SeloSituacao } from '../../components/registros'
 import { TIPOS_LANCAMENTO, rotulo, type Colaborador } from './tipos'
 
 export type Lancamento = {
@@ -121,10 +121,21 @@ export default function AbaFinanceiro({ colaborador }: { colaborador: Colaborado
           aoFechar={() => setAberto(null)}
           titulo={`${rotulo(TIPOS_LANCAMENTO, aberto.tipo)} — ${formatarMoeda(aberto.valor)}`}
           rodape={
-            aberto.situacao !== 'cancelado' && (
+            <>
+              <BotaoExcluir
+                modulo="financeiro"
+                tabela="lancamentos_colaborador"
+                id={aberto.id}
+                descricao={`o lançamento de ${formatarMoeda(aberto.valor)}`}
+                aoExcluir={() => {
+                  setAberto(null)
+                  atualizar()
+                }}
+              />
+              {aberto.situacao !== 'cancelado' && (
               <>
                 {pode('financeiro', 'cancelar') && (
-                  <Botao variante="perigo" className="mr-auto" onClick={() => setCancelando(true)}>Cancelar</Botao>
+                  <Botao variante="perigo" onClick={() => setCancelando(true)}>Cancelar</Botao>
                 )}
                 {aberto.situacao === 'pendente' && pode('financeiro', 'aprovar') && (
                   <Botao carregando={mudar.isPending} onClick={() => mudar.mutate({ situacao: 'aprovado' })}>Aprovar</Botao>
@@ -133,7 +144,8 @@ export default function AbaFinanceiro({ colaborador }: { colaborador: Colaborado
                   <Botao carregando={mudar.isPending} onClick={() => mudar.mutate({ situacao: 'pago' })}>Marcar como pago</Botao>
                 )}
               </>
-            )
+              )}
+            </>
           }
         >
           <div className="space-y-1 text-sm">

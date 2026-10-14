@@ -6,8 +6,8 @@ import { usePermissoes } from '../../lib/permissoes'
 import { useNomesUsuarios } from '../../lib/hooks'
 import { formatarMoeda, lerMoeda } from '../../lib/formatos'
 import { BANDEIRAS, FORMAS } from '../../lib/cafe'
-import { Botao, Campo, Cartao, Mensagem, Selecao, Tabela, Vazio, cx, mensagemErro } from '../../components/ui'
-import { JanelaCancelar, SeloSituacao } from '../../components/registros'
+import { Botao, Campo, Cartao, Janela, Mensagem, Selecao, Tabela, Vazio, cx, mensagemErro } from '../../components/ui'
+import { BotaoExcluir, JanelaCancelar, SeloSituacao } from '../../components/registros'
 import { ROTULO_FORMA, descreverPagamento, useMensalistas, type Venda } from './dados'
 
 type Forma = (typeof FORMAS)[number]['valor']
@@ -18,6 +18,7 @@ export default function Vendas({ data, lista, precos, focar }: { data: string; l
   const qc = useQueryClient()
   const { pode } = usePermissoes()
   const nome = useNomesUsuarios()
+  const [aberta, setAberta] = useState<Venda | null>(null)
   const [cancelando, setCancelando] = useState<Venda | null>(null)
   const atualizar = () => qc.invalidateQueries({ queryKey: ['cafe_vendas'] })
 
@@ -28,6 +29,7 @@ export default function Vendas({ data, lista, precos, focar }: { data: string; l
     },
     onSuccess: () => {
       setCancelando(null)
+      setAberta(null)
       atualizar()
     },
   })
@@ -49,7 +51,7 @@ export default function Vendas({ data, lista, precos, focar }: { data: string; l
           <Tabela
             linhas={lista}
             chave={(v) => v.id}
-            aoClicar={(v) => pode('cafes', 'cancelar') && v.situacao !== 'cancelado' && setCancelando(v)}
+            aoClicar={setAberta}
             colunas={[
               { titulo: 'Cliente', celula: (v) => <b>{v.cliente}</b> },
               { titulo: 'Qtd', celula: (v) => v.quantidade },
@@ -89,6 +91,40 @@ export default function Vendas({ data, lista, precos, focar }: { data: string; l
       )}
       {mudar.error && !cancelando && <div className="mt-3"><Mensagem tipo="erro">{mensagemErro(mudar.error)}</Mensagem></div>}
 
+      {aberta && !cancelando && (
+        <Janela
+          aberta
+          aoFechar={() => setAberta(null)}
+          titulo={`Venda · ${aberta.cliente}`}
+          rodape={
+            <>
+              <BotaoExcluir
+                modulo="cafes"
+                tabela="cafe_vendas"
+                id={aberta.id}
+                descricao={`a venda de ${formatarMoeda(aberta.valor_total)} (${aberta.cliente})`}
+                aoExcluir={() => {
+                  setAberta(null)
+                  atualizar()
+                }}
+              />
+              {aberta.situacao !== 'cancelado' && pode('cafes', 'cancelar') && (
+                <Botao variante="perigo" onClick={() => setCancelando(aberta)}>Cancelar</Botao>
+              )}
+              <Botao variante="secundario" onClick={() => setAberta(null)}>Fechar</Botao>
+            </>
+          }
+        >
+          <div className="space-y-1 text-sm">
+            <p>
+              {aberta.quantidade} café(s) · <b>{formatarMoeda(aberta.valor_total)}</b> · {descreverPagamento(aberta)}
+            </p>
+            <p className="text-xs text-slate-500">Lançado por {nome(aberta.criado_por)}</p>
+            {aberta.conferido && <p className="text-xs text-slate-500">Conferido por {nome(aberta.conferido_por)}</p>}
+            {aberta.motivo_cancelamento && <p className="text-slate-500">Cancelado: {aberta.motivo_cancelamento}</p>}
+          </div>
+        </Janela>
+      )}
       <JanelaCancelar
         aberta={!!cancelando}
         titulo={`Cancelar venda · ${cancelando?.cliente ?? ''}`}
