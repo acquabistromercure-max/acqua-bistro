@@ -46,6 +46,11 @@ export const NOMES_TABELAS: Record<string, string> = {
   cartoes: 'Cartões da empresa',
   compras_cartao: 'Compras no cartão',
   faturas_cartao: 'Faturas do cartão',
+  clientes: 'Clientes',
+  evento_modelos: 'Modelos de coffee break',
+  evento_produtos: 'Produtos avulsos de evento',
+  eventos: 'Eventos',
+  evento_consumos: 'Consumos de evento',
 }
 
 const POR_PAGINA = 50
