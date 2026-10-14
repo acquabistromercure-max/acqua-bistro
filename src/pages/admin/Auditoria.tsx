@@ -51,6 +51,7 @@ export const NOMES_TABELAS: Record<string, string> = {
   evento_produtos: 'Produtos avulsos de evento',
   eventos: 'Eventos',
   evento_consumos: 'Consumos de evento',
+  documentos: 'Documentos',
 }
 
 const POR_PAGINA = 50
