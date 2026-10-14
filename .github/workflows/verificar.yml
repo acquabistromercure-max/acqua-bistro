@@ -1,0 +1,42 @@
+# Confere cada mudança ANTES de ir para a main: tipos, testes do site, migrations + RLS num Postgres temporário e build.
+# Roda em pull requests e em qualquer branch que não seja a main (a main já publica pelo deploy.yml).
+name: Verificar
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verificar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Checagem de tipos
+        run: npm run lint
+      - name: Testes automáticos do site
+        run: npm test
+      - name: Instalar Postgres
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq postgresql >/dev/null
+      - name: Migrations e regras de acesso (RLS)
+        run: npm run testar-banco
+      - name: Montar o site
+        env:
+          VITE_SUPABASE_URL: https://exemplo.supabase.co
+          VITE_SUPABASE_ANON_KEY: chave-de-teste
+        run: npm run build
