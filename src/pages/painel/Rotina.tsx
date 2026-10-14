@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { usePermissoes } from '../../lib/permissoes'
 import { chavePeriodo, type Frequencia } from '../../lib/periodos'
 import { formatarDataHora } from '../../lib/formatos'
+import { useNomesUsuarios } from '../../lib/hooks'
 import { Abas, Botao, Cartao, Carregando, Mensagem, cx, mensagemErro } from '../../components/ui'
 import GerenciarTarefas from './GerenciarTarefas'
 
@@ -55,13 +56,7 @@ export default function Rotina({ data }: { data: string }) {
     },
   })
 
-  const nomes = useQuery({
-    queryKey: ['nomes-usuarios'],
-    queryFn: async () => {
-      const { data } = await supabase.from('perfis').select('id, nome, email')
-      return new Map((data ?? []).map((p) => [p.id, p.nome || p.email]))
-    },
-  })
+  const nome = useNomesUsuarios()
 
   const marcar = useMutation({
     mutationFn: async ({ tarefa, feita }: { tarefa: Tarefa; feita?: Conclusao }) => {
@@ -126,7 +121,7 @@ export default function Rotina({ data }: { data: string }) {
                     <span className={cx('block text-sm', feita ? 'text-slate-400 line-through' : 'text-acqua-titulo')}>{t.titulo}</span>
                     {feita && (
                       <span className="block text-xs text-slate-500">
-                        Feito por {nomes.data?.get(feita.concluido_por) ?? '…'} em {formatarDataHora(feita.concluido_em)}
+                        Feito por {nome(feita.concluido_por)} em {formatarDataHora(feita.concluido_em)}
                       </span>
                     )}
                   </span>

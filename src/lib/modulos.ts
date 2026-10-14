@@ -20,7 +20,7 @@ export const MENU: ItemMenu[] = [
   { rota: '/cafes', rotulo: 'Café da manhã', icone: Coffee, modulo: 'cafes', grupo: 'Operação', emBreve: true },
   { rota: '/eventos', rotulo: 'Eventos', icone: PartyPopper, modulo: 'eventos', grupo: 'Operação', emBreve: true },
   { rota: '/compras', rotulo: 'Compras e pedidos', icone: ShoppingCart, modulo: 'compras', grupo: 'Operação', emBreve: true },
-  { rota: '/colaboradores', rotulo: 'Colaboradores', icone: Users, modulo: 'colaboradores', grupo: 'Pessoas', emBreve: true },
+  { rota: '/colaboradores', rotulo: 'Colaboradores', icone: Users, modulo: 'colaboradores', grupo: 'Pessoas' },
   { rota: '/escalas', rotulo: 'Escalas e ponto', icone: CalendarClock, modulo: 'escalas', grupo: 'Pessoas', emBreve: true },
   { rota: '/caixa', rotulo: 'Caixa', icone: Wallet, modulo: 'caixa', grupo: 'Financeiro', emBreve: true },
   { rota: '/cartoes', rotulo: 'Cartão empresa', icone: CreditCard, modulo: 'cartoes', grupo: 'Financeiro', emBreve: true },

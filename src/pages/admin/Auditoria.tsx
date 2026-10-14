@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { formatarDataHora } from '../../lib/formatos'
+import { useNomesUsuarios } from '../../lib/hooks'
 import { Botao, Carregando, Janela, Mensagem, Pagina, Selecao, Selo, Tabela, mensagemErro } from '../../components/ui'
 
 type Registro = {
@@ -21,6 +22,11 @@ export const NOMES_TABELAS: Record<string, string> = {
   permissoes: 'Permissões',
   configuracoes: 'Configurações',
   rotina_tarefas: 'Tarefas da rotina',
+  colaboradores: 'Colaboradores',
+  colaboradores_bancarios: 'Dados bancários',
+  ocorrencias: 'Ocorrências',
+  lancamentos_colaborador: 'Financeiro do colaborador',
+  diarias: 'Diárias',
 }
 
 const POR_PAGINA = 50
@@ -38,13 +44,7 @@ export default function Auditoria() {
   const [pagina, setPagina] = useState(0)
   const [aberto, setAberto] = useState<Registro | null>(null)
 
-  const nomes = useQuery({
-    queryKey: ['nomes-usuarios'],
-    queryFn: async () => {
-      const { data } = await supabase.from('perfis').select('id, nome, email')
-      return new Map((data ?? []).map((p) => [p.id, p.nome || p.email]))
-    },
-  })
+  const quem = useNomesUsuarios()
 
   const registros = useQuery({
     queryKey: ['auditoria', tabela, pagina],
@@ -56,8 +56,6 @@ export default function Auditoria() {
       return data as Registro[]
     },
   })
-
-  const quem = (id: string | null) => (id ? nomes.data?.get(id) ?? 'Usuário removido' : 'Sistema')
 
   return (
     <Pagina titulo="Histórico de alterações" descricao="Tudo o que foi criado, alterado ou apagado nas áreas sensíveis. Ninguém consegue editar este histórico.">
