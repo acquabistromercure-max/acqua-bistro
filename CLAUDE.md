@@ -117,6 +117,64 @@ Suposições feitas para não travar o desenvolvimento. Cada uma pode ser mudada
 - **Turnos**: Manhã, Tarde, Noite (configuração `turnos`).
 - **Usuários veem nomes dos colegas** (necessário para mostrar "quem lançou"); dados sensíveis ficam em tabelas
   separadas com permissão própria.
+- **Gestão de usuários pela Edge Function `admin-usuarios`** (convite por e-mail; desativar = perfil inativo + login
+  bloqueado). O sistema impede ficar sem administrador ativo.
+- **Minha rotina**: 12 tarefas iniciais tiradas do briefing (seção 4); Gerente também pode editar tarefas
+  (`painel/editar`). Qualquer um que vê o painel marca tarefas, sempre em nome próprio.
+- **Painel**: filtros por dia/semana/mês/ano já existem; filtros por turno e responsável ficam para quando houver
+  dados desses módulos (cafés, caixa, escalas).
+- **Colaboradores**: CPF opcional mas validado e único; um só cadastro serve para CLT e diaristas (campo `vinculo`);
+  desligado exige data e continua no sistema (inativo). Prazo de retenção de dados de desligados: não definido.
+- **Dados bancários** em tabela separada, visíveis só para Financeiro, RH e Admin (`dados_bancarios`).
+- **Ocorrências**: registrar ≠ aprovar ≠ descontar. Nenhuma ocorrência gera desconto automático.
+- **Financeiro do colaborador** (`lancamentos_colaborador`): fluxo pendente → aprovado → pago; cancelar exige motivo.
+  Campo `origem_tipo`/`origem_id` único evita lançamento duplicado (ex.: vale vindo do caixa usará
+  `origem_tipo = 'retirada_caixa'`). RH e Gerente também podem criar lançamentos.
+- **Diárias**: convocada → trabalhada → aprovada → paga. Valor sugerido = remuneração da ficha. Vínculo com
+  evento e geração de conta a pagar/recibo ficam para os módulos de eventos, caixa e documentos.
+- **Exportação** em CSV (separador `;`, abre no Excel). PDF fica para o módulo de documentos.
+
+## Estado atual (14/10/2026)
+Feito, publicado e com migration aplicada em produção (conferido com `scripts/conferir-deploy.sh`):
+1. **Base** — layout logado (menu lateral/gaveta + topo), perfis e permissões por papel (tela Permissões),
+   tela Usuários (convidar/desativar via Edge Function `admin-usuarios`), Histórico (auditoria).
+2. **Painel** — filtro de período, atalhos (aparecem quando o módulo existe), Minha rotina.
+3. **Colaboradores e diaristas** — lista com busca/filtros/exportar, ficha com abas (dados, bancários, ocorrências,
+   financeiro, diárias, linha do tempo), aba geral de Diárias.
+
+Migrations aplicadas: `20261014010000` a `20261014050000`. Testes: 20 do site (Vitest) + 4 arquivos de RLS.
+
+**Próximos módulos** (na ordem combinada com o dono): 4) escalas e ponto; 5) café da manhã; 6) caixa (inclui
+contas a pagar/receber e vales); 7) eventos; 8) compras e pedidos; 9) cartões; 10) documentos (Supabase Storage);
+11) automações. Para cada módulo: migration + teste RLS em `supabase/tests/NN_modulo.sql`, telas em
+`src/pages/<modulo>/`, rota em `PAGINAS` (`App.tsx`), tirar `emBreve` em `src/lib/modulos.ts`, nomes em
+`NOMES_TABELAS`, commit + push, `bash scripts/conferir-deploy.sh` e `bash scripts/alertas-supabase.sh`, resumo de
+3 linhas ao dono.
+
+**Pontos de encaixe já prontos para os próximos módulos:**
+- `src/pages/painel/cards.tsx` (`CARDS`): cada módulo registra seu card no painel (recebe o filtro de período).
+- `src/pages/colaboradores/abasExtras.ts` (`ABAS_EXTRAS`): abas da ficha vindas de outros módulos (Escala, Ponto,
+  Documentos).
+- `src/pages/painel/Atalhos.tsx`: atalhos abrem `<rota>?novo=1` (ou `?novo=vale` / `?novo=retirada` no caixa); a
+  tela do módulo deve abrir o formulário ao ver esse parâmetro.
+- `public.controlar_situacao('<modulo>')` (gatilho): exige permissão para aprovar/cancelar, carimba quem aprovou e
+  bloqueia mudanças em registro cancelado. Tabela precisa de `situacao`, `aprovado_por`, `aprovado_em`.
+- `diarias.evento_id` ainda não existe: criar no módulo de eventos (FK para `eventos`).
+- `src/components/registros.tsx`: `SeloSituacao` e `JanelaCancelar` (motivo obrigatório).
+
+**Ambiente de teste** (não fica no repositório): o Postgres local é instalado com
+`sudo apt-get install -y postgresql`. Para ver telas logadas sem senha real, usamos Playwright num diretório
+temporário, com sessão falsa no `localStorage` (`sb-wiocgyawzwuaqcunubrw-auth-token`) e respostas falsas para
+`/rest/v1/*`; conferir também que nenhuma tela passa de 360px de largura.
+
+**Pendências de painel com o dono** (não bloqueiam o desenvolvimento):
+- GitHub → Settings → Pages → marcar **Enforce HTTPS** (quando disponível).
+- Supabase → Authentication → URL Configuration: Site URL `https://acquabistro.site/` e Redirect URL
+  `https://acquabistro.site/**` (não dá para conferir pela API usada aqui).
+- Opcional: Supabase → Authentication → proteção contra senhas vazadas (alerta `auth_leaked_password_protection`;
+  pode exigir plano pago).
+- SMTP do Gmail para os e-mails saírem de acquabistromercure@gmail.com.
+- Logo em vetor e foto original da tela de login (o SVG recebido tem só o PNG embutido).
 
 ## Roadmap (briefing, seção 16)
 1. MVP: login/recuperação/permissões/auditoria; dashboard; colaboradores/diaristas; cafés; escala básica;
