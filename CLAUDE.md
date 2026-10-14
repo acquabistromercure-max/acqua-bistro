@@ -36,6 +36,19 @@ e documentos. Especificação completa em `docs/Briefing_Completo_Acqua_Bistro.p
 - `npm run dev` — abre o site no Codespace (porta 5173).
 - `npm run build` — checa tipos e gera `dist/`.
 - `npm run lint` — checagem de tipos.
+- `npm test` — testes automáticos do site (Vitest; arquivos `*.test.ts` ao lado do código).
+- `npm run testar-banco` — aplica TODAS as migrations num Postgres 17 temporário do Codespace e roda os testes de
+  RLS em `supabase/tests/` (`00_simulacao_supabase.sql` imita auth/storage; `01_ajudantes.sql` cria usuários de teste
+  por papel; `NN_modulo.sql` = testes de cada módulo). Se faltar o Postgres: `sudo apt-get install -y postgresql`.
+- `bash scripts/consultar-producao.sh "select ..."` — consulta SOMENTE LEITURA na produção (API do Supabase com
+  `SUPABASE_ACCESS_TOKEN`, que existe no Codespace). Usar para conferir se migrations foram aplicadas:
+  `select version from supabase_migrations.schema_migrations`.
+- Edge Functions ficam em `supabase/functions/`; publicar com
+  `supabase functions deploy <nome> --project-ref wiocgyawzwuaqcunubrw --use-api`.
+
+## Checklist antes de cada push
+1. `npm run lint && npm test && npm run testar-banco && npm run build`.
+2. Push na `main`. Conferir: workflow "Publicar site" verde e a migration nova em `schema_migrations`.
 
 ## Identidade visual
 - Paleta: azul acqua `#83C7D8`, azul profundo `#354866`, dourado `#D9A126`, branco gelo `#F7FAFB`,
@@ -55,7 +68,9 @@ e documentos. Especificação completa em `docs/Briefing_Completo_Acqua_Bistro.p
   em desconto automaticamente.
 - Login: mensagens de erro genéricas; nunca mostrar IP/últimos acessos na tela pública.
 - "Esqueci minha senha": resposta sempre igual, sem revelar se o e-mail existe. Link de uso único (Supabase Auth).
-- Sem cadastro público: usuários são criados pelo administrador (painel do Supabase → Authentication → Users).
+- Sem cadastro público ("Allow new users to sign up" desligado no Supabase): o administrador convida pela tela
+  Usuários (Edge Function `admin-usuarios`, que usa a service_role no servidor). Desativar = perfil inativo + login
+  bloqueado; nada é apagado.
 - Cartão empresa: só banco, apelido, 4 últimos dígitos, fechamento e vencimento. Jamais CVV ou número completo.
 - Perfis: Administrador, Gerente, Financeiro, RH, Operador, Consulta. Permissões por módulo e ação.
 - Textos trabalhistas/fiscais precisam de validação do RH/contabilidade/jurídico antes de produção (LGPD também).
@@ -68,6 +83,37 @@ e documentos. Especificação completa em `docs/Briefing_Completo_Acqua_Bistro.p
 - 14/10/2026: domínio próprio acquabistro.site (Hostinger) apontado para o GitHub Pages.
   Supabase → Authentication → URL Configuration deve ter Site URL e Redirect URL nesse domínio.
 - 14/10/2026: MFA, histórico de acessos com IP e área "Segurança e sessões" ficam para depois do login.
+
+## Arquitetura do código
+- `src/lib/`: `supabase.ts` (cliente), `auth.tsx` (sessão), `permissoes.tsx` (perfil + `pode(modulo, acao)`),
+  `modulos.ts` (menu e lista de módulos de permissão), `formatos.ts` (moeda/data/horas, fuso America/Fortaleza).
+- `src/components/ui.tsx`: Botao, Campo, Selecao, AreaTexto, Alternador, Pagina, Cartao, Tabela (vira cartões no
+  celular), Janela, Confirmar, Abas, Selo, Mensagem, `mensagemErro()`. Reusar sempre.
+- `src/components/LayoutApp.tsx`: menu lateral (computador) / gaveta (celular) + topo. Itens filtrados por permissão.
+- Telas em `src/pages/<modulo>/`, carregadas sob demanda (`lazy` em `App.tsx`, mapa `PAGINAS`).
+- Dados com `@tanstack/react-query` + supabase-js direto nas telas. Ícones: `lucide-react`.
+
+## Banco: padrões obrigatórios
+- RLS em toda tabela. Políticas usam `public.pode('<modulo>', '<acao>')` (ações: ver, criar, editar, aprovar,
+  cancelar, exportar). Administrador sempre pode tudo. Usuário desativado não pode nada (`usuario_ativo()`).
+- Permissões padrão por papel ficam na tabela `permissoes` (editável na tela Permissões). Módulos novos: incluir
+  linhas padrão na migration e o módulo em `MODULOS_PERMISSAO`.
+- Tabelas sensíveis recebem o gatilho `registrar_auditoria()` (tabela `auditoria`, só leitura, ninguém apaga).
+  Incluir o nome amigável em `NOMES_TABELAS` (`src/pages/admin/Auditoria.tsx`).
+- Nada é apagado em registros operacionais: usar status `cancelado` + motivo.
+- Regras ainda não validadas ficam na tabela `configuracoes` (chave/valor), editável pelo admin.
+- Funções `security definer` sempre com `set search_path = ''` e `revoke execute ... from public, anon`.
+
+## Decisões a validar
+Suposições feitas para não travar o desenvolvimento. Cada uma pode ser mudada depois.
+- **Permissões padrão por papel** (migration `..._base_permissoes_auditoria.sql`): Gerente opera e aprova quase
+  tudo, mas não vê dados bancários nem usuários; Financeiro: caixa, contas, cartões, dados bancários; RH:
+  colaboradores, escalas, ponto, ocorrências, documentos, dados bancários; Operador: lança cafés, caixa, eventos e
+  pedidos (sem cancelar/aprovar); Consulta: só leitura de cafés, escalas, eventos e compras. Ajustável na tela.
+- **Uma unidade só** (briefing: decisão pendente). Configuração `unidade_nome`.
+- **Turnos**: Manhã, Tarde, Noite (configuração `turnos`).
+- **Usuários veem nomes dos colegas** (necessário para mostrar "quem lançou"); dados sensíveis ficam em tabelas
+  separadas com permissão própria.
 
 ## Roadmap (briefing, seção 16)
 1. MVP: login/recuperação/permissões/auditoria; dashboard; colaboradores/diaristas; cafés; escala básica;

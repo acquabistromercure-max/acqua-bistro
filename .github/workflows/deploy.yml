@@ -25,6 +25,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Testes automáticos
+        run: npm test
       - name: Conferir se os secrets do Supabase existem
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
