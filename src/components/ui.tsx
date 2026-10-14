@@ -175,7 +175,7 @@ export function Pagina({ titulo, descricao, acoes, children }: { titulo: string;
 
 export function Cartao({ titulo, acoes, children, className }: { titulo?: ReactNode; acoes?: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <section className={cx('rounded-2xl border border-acqua-suave bg-white p-4 shadow-sm sm:p-5', className)}>
+    <section className={cx('min-w-0 rounded-2xl border border-acqua-suave bg-white p-4 shadow-sm sm:p-5', className)}>
       {(titulo || acoes) && (
         <header className="mb-3 flex items-center justify-between gap-2">
           {titulo && <h2 className="font-semibold text-acqua-titulo">{titulo}</h2>}

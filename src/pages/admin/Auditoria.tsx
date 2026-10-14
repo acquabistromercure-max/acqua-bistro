@@ -20,6 +20,7 @@ export const NOMES_TABELAS: Record<string, string> = {
   perfis: 'Usuários',
   permissoes: 'Permissões',
   configuracoes: 'Configurações',
+  rotina_tarefas: 'Tarefas da rotina',
 }
 
 const POR_PAGINA = 50
