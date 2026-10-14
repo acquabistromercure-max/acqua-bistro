@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, ChevronRight, Copy, Download, Printer, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Copy, Download, Printer, Search, Wand2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { usePermissoes } from '../../lib/permissoes'
 import { formatarData, formatarMinutos, hojeISO, normalizar, somarDias } from '../../lib/formatos'
@@ -66,6 +66,15 @@ export default function GradeEscala() {
     },
   })
 
+  const preencher = useMutation({
+    mutationFn: async () => {
+      const { data: qtd, error } = await supabase.rpc('gerar_escala_padrao', { p_inicio: inicio, p_fim: fim })
+      if (error) throw error
+      return qtd as number
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['escalas'] }),
+  })
+
   const exportar = () =>
     baixarCSV(
       `escala-${inicio}-a-${fim}`,
@@ -113,6 +122,17 @@ export default function GradeEscala() {
           <Search className="pointer-events-none absolute right-3 top-[34px] h-4 w-4 text-slate-400" />
         </div>
         <div className="mb-4 flex flex-wrap gap-2 sm:ml-auto">
+          {pode('escalas', 'criar') && (
+            <Botao
+              variante="secundario"
+              icone={<Wand2 className="h-4 w-4" />}
+              carregando={preencher.isPending}
+              onClick={() => preencher.mutate()}
+              title="Preenche os dias vazios com o horário e as folgas fixas cadastrados na ficha de cada pessoa"
+            >
+              Preencher pelo horário fixo
+            </Botao>
+          )}
           {visao === 'semana' && pode('escalas', 'criar') && (
             <Botao variante="secundario" icone={<Copy className="h-4 w-4" />} onClick={() => setCopiando(true)}>
               Copiar semana anterior
@@ -133,6 +153,19 @@ export default function GradeEscala() {
         Escala — {formatarData(inicio)} a {formatarData(fim)}
       </h2>
 
+      {(preencher.isSuccess || preencher.error) && (
+        <div className="mb-3 print:hidden">
+          {preencher.error ? (
+            <Mensagem tipo="erro">{mensagemErro(preencher.error)}</Mensagem>
+          ) : (
+            <Mensagem tipo="sucesso">
+              {preencher.data
+                ? `${preencher.data} dia(s) preenchidos pelo horário fixo. Ajuste o que for diferente clicando no dia.`
+                : 'Nada para preencher: os dias já estão lançados ou ninguém tem horário fixo na ficha.'}
+            </Mensagem>
+          )}
+        </div>
+      )}
       {copiar.isSuccess && (
         <div className="mb-3 print:hidden">
           <Mensagem tipo="sucesso">

@@ -63,9 +63,14 @@ export default function Lista() {
               </Botao>
             )}
             {pode('colaboradores', 'criar') && (
-              <Botao icone={<Plus className="h-4 w-4" />} onClick={() => navigate('/colaboradores/novo')}>
-                Novo colaborador
-              </Botao>
+              <>
+                <Botao variante="secundario" icone={<Plus className="h-4 w-4" />} onClick={() => navigate('/colaboradores/novo?vinculo=diarista')}>
+                  Novo diarista
+                </Botao>
+                <Botao icone={<Plus className="h-4 w-4" />} onClick={() => navigate('/colaboradores/novo')}>
+                  Novo colaborador
+                </Botao>
+              </>
             )}
           </>
         )

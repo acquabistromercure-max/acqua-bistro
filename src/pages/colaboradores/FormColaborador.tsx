@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
 import { lerMoeda } from '../../lib/formatos'
@@ -14,7 +14,13 @@ const VAZIO: Form = {
   contato_emergencia_nome: '', contato_emergencia_telefone: '', funcao: '', vinculo: 'clt', situacao: 'ativo',
   data_admissao: '', data_desligamento: '', motivo_desligamento: '', jornada_descricao: '', jornada_semanal_horas: '',
   tipo_remuneracao: 'mensal', remuneracao: '', observacoes: '',
+  horario_entrada: '', horario_saida: '', intervalo_minutos: '60',
 }
+
+const DIAS = [
+  { n: 1, rotulo: 'Seg' }, { n: 2, rotulo: 'Ter' }, { n: 3, rotulo: 'Qua' }, { n: 4, rotulo: 'Qui' },
+  { n: 5, rotulo: 'Sex' }, { n: 6, rotulo: 'Sáb' }, { n: 7, rotulo: 'Dom' },
+]
 
 function paraForm(c: Colaborador): Form {
   const f: Form = { ...VAZIO }
@@ -23,6 +29,8 @@ function paraForm(c: Colaborador): Form {
     f[k] = v === null || v === undefined ? '' : k === 'remuneracao' ? String(v).replace('.', ',') : String(v)
   }
   f.cpf = formatarCPF(c.cpf)
+  f.horario_entrada = f.horario_entrada.slice(0, 5)
+  f.horario_saida = f.horario_saida.slice(0, 5)
   return f
 }
 
@@ -43,7 +51,10 @@ export default function FormColaborador() {
   const { id } = useParams()
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const [f, setF] = useState<Form>(VAZIO)
+  const [params] = useSearchParams()
+  const ehDiarista = !id && params.get('vinculo') === 'diarista'
+  const [f, setF] = useState<Form>(ehDiarista ? { ...VAZIO, vinculo: 'diarista', tipo_remuneracao: 'diaria' } : VAZIO)
+  const [folgas, setFolgas] = useState<number[]>([])
   const [erros, setErros] = useState<Record<string, string>>({})
 
   const atual = useQuery({
@@ -57,7 +68,10 @@ export default function FormColaborador() {
   })
 
   useEffect(() => {
-    if (atual.data) setF(paraForm(atual.data))
+    if (atual.data) {
+      setF(paraForm(atual.data))
+      setFolgas(atual.data.dias_folga ?? [])
+    }
   }, [atual.data])
 
   const campo = (k: string) => ({
@@ -73,6 +87,8 @@ export default function FormColaborador() {
       dados.cpf = f.cpf ? soDigitos(f.cpf) : null
       dados.remuneracao = f.remuneracao ? lerMoeda(f.remuneracao) : null
       dados.jornada_semanal_horas = f.jornada_semanal_horas ? Number(f.jornada_semanal_horas.replace(',', '.')) : null
+      dados.intervalo_minutos = Number(f.intervalo_minutos) || 0
+      dados.dias_folga = folgas
       if (f.situacao !== 'desligado') {
         dados.data_desligamento = null
         dados.motivo_desligamento = null
@@ -100,7 +116,10 @@ export default function FormColaborador() {
   if (id && atual.isLoading) return <Carregando />
 
   return (
-    <Pagina titulo={id ? 'Editar colaborador' : 'Novo colaborador'}>
+    <Pagina
+      titulo={id ? 'Editar colaborador' : ehDiarista ? 'Novo diarista' : 'Novo colaborador'}
+      descricao={ehDiarista ? 'Cadastro completo, sem contrato fixo: o pagamento é por diária convocada.' : undefined}
+    >
       <form onSubmit={enviar} className="space-y-4" noValidate>
         <Cartao titulo="Identificação">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -142,6 +161,40 @@ export default function FormColaborador() {
               Desligados continuam no sistema como inativos, para preservar o histórico.
             </p>
           )}
+        </Cartao>
+        <Cartao titulo="Horário de trabalho">
+          <p className="mb-3 text-xs text-slate-500">
+            Usado para sugerir a escala (botão “Preencher pelo horário fixo”) e como jornada prevista na folha-ponto quando o dia não tem escala.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Campo rotulo="Entrada" type="time" {...campo('horario_entrada')} />
+            <Campo rotulo="Saída" type="time" {...campo('horario_saida')} ajuda="Pode passar da meia-noite." />
+            <Campo rotulo="Intervalo (minutos)" type="number" min={0} max={600} {...campo('intervalo_minutos')} />
+          </div>
+          <div className="mt-3">
+            <p className="mb-1 text-sm font-semibold text-acqua-titulo">Folgas fixas</p>
+            <div className="flex flex-wrap gap-1.5">
+              {DIAS.map((d) => {
+                const marcado = folgas.includes(d.n)
+                return (
+                  <button
+                    key={d.n}
+                    type="button"
+                    aria-pressed={marcado}
+                    onClick={() => setFolgas(marcado ? folgas.filter((x) => x !== d.n) : [...folgas, d.n].sort())}
+                    className={
+                      marcado
+                        ? 'rounded-lg border border-acqua-petroleo bg-acqua-titulo px-3 py-1.5 text-sm font-semibold text-white'
+                        : 'rounded-lg border border-[#C4D3E8] bg-white px-3 py-1.5 text-sm font-semibold text-acqua-titulo hover:bg-acqua-suave'
+                    }
+                  >
+                    {d.rotulo}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="mt-1 text-xs text-slate-500">Para 12x36 ou escalas que mudam, deixe sem folga fixa e monte na tela de Escalas.</p>
+          </div>
         </Cartao>
         <Cartao titulo="Observações">
           <AreaTexto rotulo="Observações" {...campo('observacoes')} />

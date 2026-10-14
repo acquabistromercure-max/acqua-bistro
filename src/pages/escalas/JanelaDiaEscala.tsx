@@ -7,7 +7,7 @@ import { useTurnos } from '../../lib/hooks'
 import { formatarData } from '../../lib/formatos'
 import { NOMES_DIAS, diaDaSemana, horaCurta, resumoEscala, type TipoEscala } from '../../lib/ponto'
 import { AreaTexto, Botao, Campo, Janela, Mensagem, Selecao, cx, mensagemErro } from '../../components/ui'
-import { TIPOS_ESCALA, nomeCurto, useHorariosTurnos, type Escala, type Pessoa } from './dados'
+import { TIPOS_ESCALA, escalaDoDia, nomeCurto, useHorariosTurnos, type Escala, type Pessoa } from './dados'
 
 /** Editar o dia de uma pessoa na escala, repetir em outros dias, trocar com um colega ou tirar o dia. */
 export default function JanelaDiaEscala({
@@ -33,11 +33,13 @@ export default function JanelaDiaEscala({
   const { pode } = usePermissoes()
   const turnos = useTurnos()
   const horarios = useHorariosTurnos()
-  const [tipo, setTipo] = useState<TipoEscala>(atual?.tipo ?? 'turno')
+  // Dia ainda vazio: começa com o horário fixo da ficha (ou folga, se for dia de folga fixa).
+  const sugerida = atual ?? escalaDoDia(null, pessoa, data)
+  const [tipo, setTipo] = useState<TipoEscala>(sugerida?.tipo ?? 'turno')
   const [turno, setTurno] = useState(atual?.turno ?? '')
-  const [inicio, setInicio] = useState(horaCurta(atual?.hora_inicio))
-  const [fim, setFim] = useState(horaCurta(atual?.hora_fim))
-  const [intervalo, setIntervalo] = useState(String(atual?.intervalo_minutos ?? 60))
+  const [inicio, setInicio] = useState(horaCurta(sugerida?.hora_inicio))
+  const [fim, setFim] = useState(horaCurta(sugerida?.hora_fim))
+  const [intervalo, setIntervalo] = useState(String(sugerida?.intervalo_minutos ?? pessoa.intervalo_minutos ?? 60))
   const [observacao, setObservacao] = useState(atual?.observacao ?? '')
   const [repetir, setRepetir] = useState<string[]>([])
   const [trocando, setTrocando] = useState(false)

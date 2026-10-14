@@ -10,7 +10,7 @@ import { NOMES_DIAS, diaDaSemana, diasDoMes, horaCurta, linhaDoDia, totalizar } 
 import { AreaTexto, Botao, Campo, Janela, Mensagem, Selecao, cx, mensagemErro } from '../../components/ui'
 import type { Colaborador } from '../colaboradores/tipos'
 import { TIPOS_OCORRENCIA, rotulo } from '../colaboradores/tipos'
-import { chaveDia, porDia, useRegrasPonto, type Escala, type RegistroPonto } from '../escalas/dados'
+import { chaveDia, escalaDoDia, porDia, useRegrasPonto, type Escala, type RegistroPonto } from '../escalas/dados'
 import { useEmpresa, useTextos } from './dados'
 
 type Origem = { id: string; rotulo: string; valor?: number; data: string; descricao?: string; tipo?: string }
@@ -91,7 +91,7 @@ export default function EmitirDocumento({ colaborador, tipoInicial, aoFechar }: 
     if (!doMes.data) return []
     const e = porDia(doMes.data.escalas)
     const r = porDia(doMes.data.registros)
-    return diasDoMes(mes).map((d) => linhaDoDia(d, e.get(chaveDia(colaborador.id, d)) ?? null, r.get(chaveDia(colaborador.id, d)) ?? null, regras, hojeISO()))
+    return diasDoMes(mes).map((d) => linhaDoDia(d, escalaDoDia(e.get(chaveDia(colaborador.id, d)), colaborador, d), r.get(chaveDia(colaborador.id, d)) ?? null, regras, hojeISO()))
   }, [doMes.data, mes, colaborador.id, regras])
   const domingos = linhas.filter((l) => (l.domingo || l.feriado) && (l.trabalhado || l.escala?.tipo === 'turno'))
 

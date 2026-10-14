@@ -21,6 +21,10 @@ export type Colaborador = {
   tipo_remuneracao: 'mensal' | 'diaria' | 'turno' | 'hora'
   remuneracao: number | null
   observacoes: string | null
+  horario_entrada: string | null
+  horario_saida: string | null
+  intervalo_minutos: number
+  dias_folga: number[]
   criado_em: string
 }
 

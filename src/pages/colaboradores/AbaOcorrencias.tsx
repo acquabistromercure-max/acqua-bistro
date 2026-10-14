@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { usePermissoes } from '../../lib/permissoes'
-import { formatarData, hojeISO } from '../../lib/formatos'
+import { formatarData, formatarMoeda, hojeISO } from '../../lib/formatos'
 import { useNomesUsuarios } from '../../lib/hooks'
 import { AreaTexto, Botao, Campo, Carregando, Janela, Mensagem, Selecao, Tabela, mensagemErro } from '../../components/ui'
 import { BotaoExcluir, JanelaCancelar, SeloSituacao } from '../../components/registros'
@@ -61,7 +61,7 @@ export default function AbaOcorrencias({ colaborador }: { colaborador: Colaborad
   return (
     <>
       <div className="mb-3 flex items-center justify-between gap-2">
-        <p className="text-sm text-slate-600">Registrar uma ocorrência não gera desconto automático. A aprovação é feita separadamente.</p>
+        <p className="text-sm text-slate-600">Registrar uma ocorrência não gera desconto automático. Depois de aprovada, abra a ocorrência para lançar o desconto.</p>
         {pode('ocorrencias', 'criar') && (
           <Botao icone={<Plus className="h-4 w-4" />} onClick={() => setNova(true)}>Nova ocorrência</Botao>
         )}
@@ -125,6 +125,9 @@ export default function AbaOcorrencias({ colaborador }: { colaborador: Colaborad
             {aberta.aprovado_por && <p className="text-slate-500">Aprovada por {nome(aberta.aprovado_por)}</p>}
             {aberta.motivo_cancelamento && <p className="text-slate-500">Motivo do cancelamento: {aberta.motivo_cancelamento}</p>}
             {mudar.error && <Mensagem tipo="erro">{mensagemErro(mudar.error)}</Mensagem>}
+            {aberta.situacao === 'aprovada' && aberta.tipo !== 'atestado' && pode('financeiro', 'criar') && (
+              <GerarDesconto ocorrencia={aberta} aoGerar={atualizar} />
+            )}
           </div>
         </Janela>
       )}
@@ -137,6 +140,65 @@ export default function AbaOcorrencias({ colaborador }: { colaborador: Colaborad
         aoConfirmar={(motivo) => mudar.mutate({ situacao: 'cancelada', motivo_cancelamento: motivo })}
       />
     </>
+  )
+}
+
+/** Ocorrência aprovada (falta, atraso…) vira desconto no financeiro do colaborador, uma vez só. */
+function GerarDesconto({ ocorrencia, aoGerar }: { ocorrencia: Ocorrencia; aoGerar: () => void }) {
+  const qc = useQueryClient()
+  const [valor, setValor] = useState('')
+  const existente = useQuery({
+    queryKey: ['desconto-ocorrencia', ocorrencia.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lancamentos_colaborador')
+        .select('id, valor, situacao')
+        .eq('origem_tipo', 'ocorrencia')
+        .eq('origem_id', ocorrencia.id)
+        .maybeSingle()
+      if (error) throw error
+      return data as { id: string; valor: number; situacao: string } | null
+    },
+  })
+  const gerar = useMutation({
+    mutationFn: async () => {
+      const v = Number(valor.replace(',', '.'))
+      if (!(v > 0)) throw new Error('Informe o valor do desconto.')
+      const { error } = await supabase.from('lancamentos_colaborador').insert({
+        colaborador_id: ocorrencia.colaborador_id,
+        tipo: 'desconto',
+        data: ocorrencia.data,
+        valor: v,
+        competencia: ocorrencia.data.slice(0, 7),
+        descricao: `${rotulo(TIPOS_OCORRENCIA, ocorrencia.tipo)} de ${formatarData(ocorrencia.data)}: ${ocorrencia.descricao}`,
+        origem_tipo: 'ocorrencia',
+        origem_id: ocorrencia.id,
+      })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['desconto-ocorrencia', ocorrencia.id] })
+      qc.invalidateQueries({ queryKey: ['lancamentos-colaborador', ocorrencia.colaborador_id] })
+      aoGerar()
+    },
+  })
+  if (existente.isLoading) return null
+  if (existente.data)
+    return (
+      <Mensagem tipo="sucesso">
+        Desconto de {formatarMoeda(existente.data.valor)} já lançado no financeiro ({existente.data.situacao}).
+      </Mensagem>
+    )
+  return (
+    <div className="rounded-xl border border-acqua-suave bg-acqua-gelo p-3">
+      <p className="mb-2 font-semibold text-acqua-titulo">Descontar no financeiro</p>
+      <div className="flex flex-wrap items-end gap-2">
+        <Campo rotulo="Valor (R$)" inputMode="decimal" className="w-36" value={valor} onChange={(e) => setValor(e.target.value)} />
+        <Botao carregando={gerar.isPending} onClick={() => gerar.mutate()}>Gerar desconto</Botao>
+      </div>
+      <p className="mt-1 text-xs text-slate-500">Entra como desconto pendente no mês {ocorrencia.data.slice(5, 7)}/{ocorrencia.data.slice(0, 4)}.</p>
+      {gerar.error && <div className="mt-2"><Mensagem tipo="erro">{mensagemErro(gerar.error)}</Mensagem></div>}
+    </div>
   )
 }
 

@@ -8,6 +8,7 @@ import { formatarMoeda } from '../../lib/formatos'
 import { MOTIVOS_AJUSTE } from '../../lib/cafe'
 import { AreaTexto, Botao, Campo, Cartao, Janela, Mensagem, Selecao, Tabela, Vazio, cx, mensagemErro } from '../../components/ui'
 import { BotaoExcluir, JanelaCancelar, SeloSituacao } from '../../components/registros'
+import { useClientes } from '../eventos/dados'
 import type { Ajuste } from './dados'
 
 const rotuloMotivo = (m: string) => MOTIVOS_AJUSTE.find((x) => x.valor === m)?.rotulo ?? m
@@ -29,6 +30,8 @@ export default function Ajustes({
   const qc = useQueryClient()
   const { pode } = usePermissoes()
   const nome = useNomesUsuarios()
+  const clientes = useClientes()
+  const empresa = (id?: string | null) => (id ? clientes.data?.find((c) => c.id === id)?.nome : undefined)
   const [novo, setNovo] = useState(false)
   const [aberto, setAberto] = useState<Ajuste | null>(null)
   const [cancelando, setCancelando] = useState(false)
@@ -69,7 +72,11 @@ export default function Ajustes({
             aoClicar={setAberto}
             colunas={[
               { titulo: 'Apto', celula: (a) => <b>{a.apartamento}</b> },
-              { titulo: 'Motivo', celula: (a) => rotuloMotivo(a.motivo) + (a.autorizado_por ? ` · ${a.autorizado_por}` : '') },
+              {
+                titulo: 'Motivo',
+                celula: (a) =>
+                  rotuloMotivo(a.motivo) + (empresa(a.cliente_id) ? ` ${empresa(a.cliente_id)}` : '') + (a.autorizado_por ? ` · ${a.autorizado_por}` : ''),
+              },
               { titulo: 'Pessoas', celula: (a) => a.quantidade },
               {
                 titulo: 'Valor',
@@ -130,6 +137,7 @@ export default function Ajustes({
               {aberto.quantidade} × {formatarMoeda(aberto.valor_unitario)} = <b>{formatarMoeda(aberto.total)}</b>
             </p>
             {aberto.hospede && <p>Hóspede(s): {aberto.hospede}</p>}
+            {empresa(aberto.cliente_id) && <p>Faturar para: <b>{empresa(aberto.cliente_id)}</b></p>}
             {aberto.autorizado_por && <p>Liberado por {aberto.autorizado_por}</p>}
             {aberto.descricao && <p>{aberto.descricao}</p>}
             <p className="text-xs text-slate-500">Lançado por {nome(aberto.criado_por)}</p>
@@ -169,12 +177,17 @@ function NovoAjuste({
   const [pessoas, setPessoas] = useState('1')
   const [autorizado, setAutorizado] = useState('')
   const [descricao, setDescricao] = useState('')
+  const [clienteId, setClienteId] = useState('')
+  const clientes = useClientes()
+  const faturar = motivo === 'faturar_empresa'
   const sinal = MOTIVOS_AJUSTE.find((m) => m.valor === motivo)?.sinal ?? 1
   const qtd = Math.max(1, Number(pessoas) || 1) * sinal
 
   const salvar = useMutation({
     mutationFn: async () => {
+      if (faturar && !clienteId && !descricao.trim()) throw new Error('Escolha a empresa (ou escreva o nome dela na descrição).')
       const { error } = await supabase.from('cafe_ajustes').insert({
+        cliente_id: faturar ? clienteId || null : null,
         data,
         apartamento: apartamento.trim(),
         hospede: hospede.trim() || null,
@@ -212,6 +225,17 @@ function NovoAjuste({
         <Campo rotulo="Apartamento" value={apartamento} onChange={(e) => setApartamento(e.target.value)} required autoFocus />
         <Campo rotulo="Pessoas" type="number" min={1} value={pessoas} onChange={(e) => setPessoas(e.target.value)} required />
         <Selecao rotulo="Motivo" className="sm:col-span-2" value={motivo} onChange={(e) => setMotivo(e.target.value)} opcoes={MOTIVOS_AJUSTE} />
+        {faturar && (
+          <Selecao
+            rotulo="Faturar para a empresa"
+            className="sm:col-span-2"
+            value={clienteId}
+            onChange={(e) => setClienteId(e.target.value)}
+            vazio={clientes.data?.length ? 'Escolha…' : 'Nenhuma empresa cadastrada (Eventos → Clientes)'}
+            opcoes={(clientes.data ?? []).map((c) => ({ valor: c.id, rotulo: c.nome }))}
+            ajuda="Não achou? Escreva o nome da empresa na descrição."
+          />
+        )}
         <Campo rotulo="Hóspede(s)" value={hospede} onChange={(e) => setHospede(e.target.value)} placeholder="Opcional" />
         <div>
           <Campo

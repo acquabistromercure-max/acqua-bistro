@@ -4,15 +4,16 @@ import { Abas, Pagina } from '../../components/ui'
 import GradeEscala from './GradeEscala'
 import Ponto from './Ponto'
 import FolhaPonto from './FolhaPonto'
+import Horas from './Horas'
 
-type Aba = 'escala' | 'ponto' | 'folha'
+type Aba = 'escala' | 'ponto' | 'folha' | 'horas'
 
 export default function EscalasPonto() {
   const { pode } = usePermissoes()
   const [params, setParams] = useSearchParams()
   const abas: { valor: Aba; rotulo: string }[] = [
     { valor: 'escala', rotulo: 'Escala' },
-    ...(pode('ponto') ? [{ valor: 'ponto' as const, rotulo: 'Ponto do dia' }, { valor: 'folha' as const, rotulo: 'Folha-ponto' }] : []),
+    ...(pode('ponto') ? [{ valor: 'ponto' as const, rotulo: 'Ponto do dia' }, { valor: 'folha' as const, rotulo: 'Folha-ponto' }, { valor: 'horas' as const, rotulo: 'Horas do mês' }] : []),
   ]
   const pedida = params.get('aba') as Aba | null
   const aba: Aba = abas.some((a) => a.valor === pedida) ? pedida! : 'escala'
@@ -25,6 +26,7 @@ export default function EscalasPonto() {
       {aba === 'escala' && <GradeEscala />}
       {aba === 'ponto' && <Ponto />}
       {aba === 'folha' && <FolhaPonto />}
+      {aba === 'horas' && <Horas />}
     </Pagina>
   )
 }

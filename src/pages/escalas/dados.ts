@@ -10,6 +10,24 @@ export type Pessoa = {
   funcao: string | null
   vinculo: string
   situacao: 'ativo' | 'afastado' | 'desligado'
+  horario_entrada?: string | null
+  horario_saida?: string | null
+  intervalo_minutos?: number
+  dias_folga?: number[]
+}
+
+type ComHorario = { horario_entrada?: string | null; horario_saida?: string | null; intervalo_minutos?: number; dias_folga?: number[] }
+
+/**
+ * Escala que vale para o dia: a lançada na grade ou, se não houver, a do horário fixo da ficha
+ * (folga nos dias de folga fixa). Sem horário fixo e sem escala → nada previsto.
+ */
+export function escalaDoDia(escala: DiaEscala | null | undefined, pessoa: ComHorario | null | undefined, data: string): DiaEscala | null {
+  if (escala) return escala
+  if (!pessoa?.horario_entrada || !pessoa.horario_saida) return null
+  const dow = new Date(`${data}T12:00:00Z`).getUTCDay() || 7
+  if ((pessoa.dias_folga ?? []).includes(dow)) return { tipo: 'folga', hora_inicio: null, hora_fim: null, intervalo_minutos: 0 }
+  return { tipo: 'turno', hora_inicio: pessoa.horario_entrada, hora_fim: pessoa.horario_saida, intervalo_minutos: pessoa.intervalo_minutos ?? 60 }
 }
 
 export type Escala = DiaEscala & {

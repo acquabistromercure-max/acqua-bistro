@@ -22,6 +22,7 @@ export type Ajuste = {
   total: number
   motivo: string
   autorizado_por: string | null
+  cliente_id?: string | null
   descricao: string | null
   situacao: 'registrado' | 'cancelado'
   motivo_cancelamento: string | null

@@ -9,7 +9,7 @@ import { baixarCSV } from '../../lib/exportar'
 import { NOMES_DIAS, diaDaSemana, diasDoMes, horaCurta, linhaDoDia, resumoEscala, totalizar, type LinhaFolha } from '../../lib/ponto'
 import { AreaTexto, Botao, Campo, Cartao, Carregando, Confirmar, Janela, Mensagem, Selecao, Selo, Vazio, cx, mensagemErro } from '../../components/ui'
 import { BotaoExcluir } from '../../components/registros'
-import { chaveDia, porDia, useEscalas, usePessoasEscala, useRegistrosPonto, useRegrasPonto, type Fechamento } from './dados'
+import { chaveDia, escalaDoDia, porDia, useEscalas, usePessoasEscala, useRegistrosPonto, useRegrasPonto, type Fechamento } from './dados'
 
 const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro']
 const nomeCompetencia = (c: string) => `${MESES[Number(c.slice(5, 7)) - 1]} de ${c.slice(0, 4)}`
@@ -54,8 +54,8 @@ export default function FolhaPonto({ colaboradorId: fixo }: { colaboradorId?: st
     if (!colaboradorId) return []
     const e = porDia(escalas.data)
     const r = porDia(registros.data)
-    return dias.map((d) => linhaDoDia(d, e.get(chaveDia(colaboradorId, d)) ?? null, r.get(chaveDia(colaboradorId, d)) ?? null, regras, hoje))
-  }, [colaboradorId, dias, escalas.data, registros.data, regras, hoje])
+    return dias.map((d) => linhaDoDia(d, escalaDoDia(e.get(chaveDia(colaboradorId, d)), pessoa, d), r.get(chaveDia(colaboradorId, d)) ?? null, regras, hoje))
+  }, [colaboradorId, dias, escalas.data, registros.data, regras, hoje, pessoa])
   const totais = useMemo(() => totalizar(linhas), [linhas])
   const pendentes = (registros.data ?? []).filter((r) => r.situacao === 'registrada').length
 

@@ -7,7 +7,7 @@ import { formatarData, formatarMinutos, hojeISO, somarDias } from '../../lib/for
 import { NOMES_DIAS, diaDaSemana, horaCurta, linhaDoDia, resumoEscala } from '../../lib/ponto'
 import { Alternador, Botao, Campo, Carregando, Mensagem, Selo, Tabela, mensagemErro } from '../../components/ui'
 import { SeloSituacao } from '../../components/registros'
-import { chaveDia, nomeCurto, porDia, useEscalas, usePessoasEscala, useRegistrosPonto, useRegrasPonto, type Pessoa } from './dados'
+import { chaveDia, escalaDoDia, nomeCurto, porDia, useEscalas, usePessoasEscala, useRegistrosPonto, useRegrasPonto, type Escala, type Pessoa } from './dados'
 import JanelaPonto from './JanelaPonto'
 
 /** Ponto do dia: quem estava escalado, as marcações e o que falta aprovar. */
@@ -29,11 +29,13 @@ export default function Ponto() {
   const linhas = useMemo(() => {
     return (pessoas.data ?? [])
       .filter((p) => {
-        const temAlgo = escalaDe.has(chaveDia(p.id, data)) || pontoDe.has(chaveDia(p.id, data))
+        const temAlgo = escalaDoDia(escalaDe.get(chaveDia(p.id, data)), p, data)?.tipo === 'turno' || escalaDe.has(chaveDia(p.id, data)) || pontoDe.has(chaveDia(p.id, data))
         return temAlgo || (todos && p.situacao !== 'desligado')
       })
       .map((p) => {
-        const escala = escalaDe.get(chaveDia(p.id, data)) ?? null
+        const lancada = escalaDe.get(chaveDia(p.id, data))
+        const fixa = lancada ? null : escalaDoDia(null, p, data)
+        const escala: Escala | null = lancada ?? (fixa ? { ...fixa, id: '', colaborador_id: p.id, data, turno: 'Horário fixo', observacao: null } : null)
         const registro = pontoDe.get(chaveDia(p.id, data)) ?? null
         return { pessoa: p, escala, registro, linha: linhaDoDia(data, escala, registro, regras, hoje) }
       })
