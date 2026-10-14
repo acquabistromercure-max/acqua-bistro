@@ -21,5 +21,5 @@ export const supabase = createClient(url || 'https://exemplo.supabase.co', anonK
 
 /** Endereço da página inicial do site (funciona no Codespace e no GitHub Pages). */
 export function urlDoSite(): string {
-  return `${window.location.origin}${import.meta.env.BASE_URL}`
+  return `${window.location.origin}${window.location.pathname}`
 }
