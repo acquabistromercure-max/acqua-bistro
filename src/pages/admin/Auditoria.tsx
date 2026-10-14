@@ -38,6 +38,11 @@ export const NOMES_TABELAS: Record<string, string> = {
   quinzenas_hotel: 'Quinzenas com o hotel',
   caixa_dias: 'Caixa (dia)',
   caixa_movimentos: 'Entradas e saídas de dinheiro',
+  fornecedores: 'Fornecedores',
+  produtos: 'Catálogo de produtos',
+  pedidos: 'Pedidos de compra',
+  pedido_itens: 'Itens de pedido',
+  contas_pagar: 'Contas a pagar',
 }
 
 const POR_PAGINA = 50
