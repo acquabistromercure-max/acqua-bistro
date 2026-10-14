@@ -9,8 +9,20 @@ e documentos. Especificação completa em `docs/Briefing_Completo_Acqua_Bistro.p
 - Quando ele precisar clicar em algo (GitHub, Supabase), dizer o caminho exato: "Menu X → Aba Y → botão Z".
 - Mostrar um plano curto e confirmar antes de mudanças grandes.
 
-## Onde tudo roda (nada no PC do dono)
-- **Codespace** (este ambiente): onde o código é editado. Node 22. Supabase CLI instalado pelo devcontainer.
+## Onde tudo roda
+- **Desde 15/10/2026 o desenvolvimento é feito pelo Claude no app desktop**, na pasta `C:\Users\Daniel Breda\code\acqua-bistro`
+  do PC do dono. **Não há Node instalado no PC** (decisão do dono) — não rodar `npm` localmente. Quem testa é o GitHub:
+  - Cada módulo vai numa **branch** (`modulo-N-nome`). O workflow **Verificar** (`.github/workflows/verificar.yml`) roda
+    tipos, testes do site, todas as migrations + testes de RLS num Postgres temporário e o build. Acompanhar com
+    `gh run list -R acquabistromercure-max/acqua-bistro -b <branch>` / `gh run watch <id> --exit-status`.
+  - Só depois de verde: merge na `main` (publica o site e aplica a migration). Nunca enviar migration direto na `main`.
+  - O git do PC usa a conta `dbredastore-cloud` (colaboradora do repositório); commits saem com o autor "Acqua Bistro".
+    Ela **não** pode alterar arquivos em `.github/workflows/` (falta o escopo `workflow`): mudanças ali são feitas pelo
+    navegador (GitHub → Add file → Upload) ou no Codespace.
+  - O conector do Supabase do Claude está ligado à organização do dono ("Daniel Breda"), não à da Acqua: banco só por
+    migrations. Para consultar a produção, usar o Codespace (`scripts/consultar-producao.sh`).
+- **Codespace** (opcional, mais lento): Node 22 e Supabase CLI instalados pelo devcontainer. Serve para testes visuais
+  com Playwright e consultas à produção.
 - **GitHub**: `acquabistromercure-max/acqua-bistro` (público). Branch principal: `main`.
 - **GitHub Pages**: o site é publicado pelo workflow `.github/workflows/deploy.yml` a cada push na `main`.
   Endereço oficial: **https://acquabistro.site/** (domínio comprado na Hostinger; DNS na Hostinger:
@@ -133,6 +145,18 @@ Suposições feitas para não travar o desenvolvimento. Cada uma pode ser mudada
 - **Diárias**: convocada → trabalhada → aprovada → paga. Valor sugerido = remuneração da ficha. Vínculo com
   evento e geração de conta a pagar/recibo ficam para os módulos de eventos, caixa e documentos.
 - **Exportação** em CSV (separador `;`, abre no Excel). PDF fica para o módulo de documentos.
+- **Escala**: um registro por pessoa por dia (`escalas`, tipos turno/folga/férias/afastamento/ausência). Dois turnos no
+  mesmo dia não são suportados. Tirar um dia da escala apaga a linha (fica na auditoria). Troca = cada pessoa fica com o
+  dia planejado da outra (`trocar_escala`, motivo obrigatório). "Copiar semana anterior" não sobrescreve dias preenchidos.
+- **Horários sugeridos por turno** (config `horarios_turnos`): Manhã 06–14, Tarde 14–22, Noite 22–06, intervalo 60 min.
+- **Ponto**: lançamento manual (não é ponto eletrônico oficial — o briefing exige análise regulatória antes). Uma marcação
+  por pessoa por dia (entrada, intervalo opcional, saída). Mexer nos horários de uma marcação aprovada a devolve para
+  aprovação. Fechar o mês exige tudo aprovado; mês fechado bloqueia o ponto; reabrir exige motivo.
+- **Cálculos da folha-ponto** (`src/lib/ponto.ts`), em horas de relógio: saldo = trabalhado − previsto; faixa noturna
+  22h–05h (config `hora_noturna`, sem hora reduzida de 52m30s); tolerância de atraso 10 min (config
+  `ponto_tolerancia_minutos`); feriados 2026 nacionais + CE + Fortaleza (config `feriados`, conferir todo ano).
+  Adicionais, banco de horas oficial e convenção coletiva: a definir com RH/contabilidade.
+- **Operador e Consulta** veem a escala (com nomes via `pessoas_escala()`), mas não o ponto.
 
 ## Estado atual (14/10/2026)
 Feito, publicado e com migration aplicada em produção (conferido com `scripts/conferir-deploy.sh`):
@@ -142,9 +166,13 @@ Feito, publicado e com migration aplicada em produção (conferido com `scripts/
 3. **Colaboradores e diaristas** — lista com busca/filtros/exportar, ficha com abas (dados, bancários, ocorrências,
    financeiro, diárias, linha do tempo), aba geral de Diárias.
 
-Migrations aplicadas: `20261014010000` a `20261014050000`. Testes: 20 do site (Vitest) + 4 arquivos de RLS.
+4. **Escalas e ponto** (15/10/2026) — grade semanal/mensal com repetir dias, troca, copiar semana, imprimir e exportar;
+   ponto do dia com aprovação em lote; folha-ponto do mês com totais, divergências, impressão para assinatura e
+   fechamento/reabertura; abas Escala e Ponto na ficha; card "Equipe" no painel.
 
-**Próximos módulos** (na ordem combinada com o dono): 4) escalas e ponto; 5) café da manhã; 6) caixa (inclui
+Migrations aplicadas: `20261014010000` a `20261015010000`. Testes: Vitest (inclui `src/lib/ponto.test.ts`) + 5 arquivos de RLS.
+
+**Próximos módulos** (na ordem combinada com o dono): 5) café da manhã; 6) caixa (inclui
 contas a pagar/receber e vales); 7) eventos; 8) compras e pedidos; 9) cartões; 10) documentos (Supabase Storage);
 11) automações. Para cada módulo: migration + teste RLS em `supabase/tests/NN_modulo.sql`, telas em
 `src/pages/<modulo>/`, rota em `PAGINAS` (`App.tsx`), tirar `emBreve` em `src/lib/modulos.ts`, nomes em
