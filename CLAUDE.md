@@ -157,6 +157,17 @@ Suposições feitas para não travar o desenvolvimento. Cada uma pode ser mudada
   `ponto_tolerancia_minutos`); feriados 2026 nacionais + CE + Fortaleza (config `feriados`, conferir todo ano).
   Adicionais, banco de horas oficial e convenção coletiva: a definir com RH/contabilidade.
 - **Operador e Consulta** veem a escala (com nomes via `pessoas_escala()`), mas não o ponto.
+- **Café e hotel** (desenhado a partir das planilhas reais, ver abaixo): o hotel paga por quinzena (1–15, 16–fim)
+  `(servidos + tickets) × valor`, onde tickets = arredondar(max(garantido − servidos, 0)) e garantido = hóspedes × %.
+  Valor e % são "fotografados" em cada `cafe_dias` (mudar a regra não altera o passado). Ajustes "por fora da lista"
+  têm quantidade ± e motivos fixos (`motivo_ajuste_cafe`). Borderô = consumo na conta do quarto, com "entregue na
+  recepção" (o operador pode marcar). Cafés pagos na hora guardam forma + bandeira (fonte para o caixa, sem redigitar);
+  mensalistas = vendas `pago=false` acertadas depois. Enviar a quinzena trava dia/ajustes/borderô; reabrir exige motivo.
+  Eventos da quinzena: valor digitado no envio até existir o módulo de eventos.
+- **Valores do negócio NÃO vão para o código** (repositório público, decisão do dono 15/10/2026): preço do café,
+  % garantido, itens do borderô, preços sugeridos, nomes de quem libera, taxas de cartão, % de aluguel etc. ficam em
+  `configuracoes` com valor vazio/zero na migration e são preenchidos pelo administrador em telas de "Regras".
+  Testes usam valores fictícios.
 
 ## Estado atual (14/10/2026)
 Feito, publicado e com migration aplicada em produção (conferido com `scripts/conferir-deploy.sh`):
@@ -170,11 +181,23 @@ Feito, publicado e com migration aplicada em produção (conferido com `scripts/
    ponto do dia com aprovação em lote; folha-ponto do mês com totais, divergências, impressão para assinatura e
    fechamento/reabertura; abas Escala e Ponto na ficha; card "Equipe" no painel.
 
-Migrations aplicadas: `20261014010000` a `20261015010000`. Testes: Vitest (inclui `src/lib/ponto.test.ts`) + 5 arquivos de RLS.
+5. **Café e hotel** (15/10/2026) — aba Dia (hotel com garantido/tickets, por fora da lista, borderô, cafés pagos na
+   hora com forma/bandeira e conferência), Quinzena com o hotel (dia a dia, Restaurante × Hotel, envio, valores aceitos,
+   pagamento, reabertura, exportar/imprimir), Mensalistas (saldo e acerto), Regras (só admin edita); card no painel.
+   Também: logo em vetor (`src/components/LogoAcqua.tsx`) e login sem o aviso de remetente.
 
-**Próximos módulos** (na ordem combinada com o dono): 5) café da manhã; 6) caixa (inclui
-contas a pagar/receber e vales); 7) eventos; 8) compras e pedidos; 9) cartões; 10) documentos (Supabase Storage);
-11) automações. Para cada módulo: migration + teste RLS em `supabase/tests/NN_modulo.sql`, telas em
+Migrations aplicadas: `20261014010000` a `20261015020000`. Testes: Vitest (`ponto.test.ts`, `cafe.test.ts`...) + 6 arquivos de RLS.
+
+**Planilhas reais da operação**: ficam em `planilhas-reais/` (ignorada pelo git, dados pessoais) com o resumo em
+`planilhas-reais/ANALISE.md`. Ler o resumo antes de desenhar caixa, compras, passagens e contabilidade.
+
+**Próximos módulos** (plano revisado com o dono em 15/10/2026, após as planilhas): 6) caixa — por dia e bandeira
+(crédito/débito Visa, Master, Amex, Elo; pix; dinheiro; conta assinada), taxas por bandeira (Regras), sangrias ligadas
+a colaborador/fornecedor, fundo de despesas com saldo, previsão de recebimentos (crédito D+30, débito D+1, conta
+assinada quinzenal), puxando as vendas de café sem redigitar; 7) compras e fornecedores (boletos/vencimentos, compras
+diárias, cartão empresa parcelado); 8) pessoas — passagens por dia escalado, comissões, descontos parcelados,
+relatório mensal para a contabilidade; 9) eventos/coffee break; 10) documentos; 11) aluguel ao hotel (% das vendas
+por fora, em Regras) e automações. Para cada módulo: migration + teste RLS em `supabase/tests/NN_modulo.sql`, telas em
 `src/pages/<modulo>/`, rota em `PAGINAS` (`App.tsx`), tirar `emBreve` em `src/lib/modulos.ts`, nomes em
 `NOMES_TABELAS`, commit + push, `bash scripts/conferir-deploy.sh` e `bash scripts/alertas-supabase.sh`, resumo de
 3 linhas ao dono.
@@ -201,8 +224,10 @@ temporário, com sessão falsa no `localStorage` (`sb-wiocgyawzwuaqcunubrw-auth-
   `https://acquabistro.site/**` (não dá para conferir pela API usada aqui).
 - Opcional: Supabase → Authentication → proteção contra senhas vazadas (alerta `auth_leaked_password_protection`;
   pode exigir plano pago).
-- SMTP do Gmail para os e-mails saírem de acquabistromercure@gmail.com.
-- Logo em vetor e foto original da tela de login (o SVG recebido tem só o PNG embutido).
+- SMTP do Gmail para os e-mails saírem de acquabistromercure@gmail.com (passo a passo já enviado ao dono; modelo do
+  e-mail em `docs/email-recuperacao-senha.html`).
+- Preencher Café da manhã → Regras (valor por café, % garantido, itens do borderô, preços, quem libera).
+- Logo: hoje é um redesenho em vetor (`LogoAcqua.tsx`, "Bistrô" na fonte Waterfall); trocar pelo arquivo original se chegar.
 
 ## Roadmap (briefing, seção 16)
 1. MVP: login/recuperação/permissões/auditoria; dashboard; colaboradores/diaristas; cafés; escala básica;
