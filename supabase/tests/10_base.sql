@@ -12,9 +12,9 @@ reset role;
 
 -- Função pode()
 reset role; select teste.como('gerente@teste.local'); set role authenticated;
-select teste.afirmar(public.pode('cafes', 'criar'), 'gerente cria café');
-select teste.afirmar(not public.pode('usuarios', 'ver'), 'gerente não gerencia usuários');
-select teste.afirmar(not public.pode('dados_bancarios', 'ver'), 'gerente não vê dados bancários');
+select teste.afirmar(privado.pode('cafes', 'criar'), 'gerente cria café');
+select teste.afirmar(not privado.pode('usuarios', 'ver'), 'gerente não gerencia usuários');
+select teste.afirmar(not privado.pode('dados_bancarios', 'ver'), 'gerente não vê dados bancários');
 select teste.afirmar((select count(*) > 1 from public.perfis), 'gerente vê nomes dos colegas');
 -- Gerente não muda o próprio papel nem o de ninguém.
 update public.perfis set papel = 'administrador' where email = 'gerente@teste.local';
@@ -22,17 +22,17 @@ reset role;
 select teste.afirmar((select papel = 'gerente' from public.perfis where email = 'gerente@teste.local'), 'gerente não se promove');
 
 reset role; select teste.como('operador@teste.local'); set role authenticated;
-select teste.afirmar(public.pode('cafes', 'criar') and not public.pode('cafes', 'cancelar'), 'operador cria mas não cancela café');
+select teste.afirmar(privado.pode('cafes', 'criar') and not privado.pode('cafes', 'cancelar'), 'operador cria mas não cancela café');
 select teste.deve_falhar($$insert into public.permissoes values ('operador','usuarios','ver')$$, 'operador não edita permissões');
 select teste.afirmar((select count(*) = 0 from public.auditoria), 'operador não vê auditoria');
 
 reset role; select teste.como('inativo@teste.local'); set role authenticated;
-select teste.afirmar(not public.pode('cafes', 'ver'), 'inativo não pode nada');
+select teste.afirmar(not privado.pode('cafes', 'ver'), 'inativo não pode nada');
 select teste.afirmar((select count(*) = 1 from public.perfis), 'inativo só vê o próprio perfil');
 select teste.afirmar((select count(*) = 0 from public.configuracoes), 'inativo não lê configurações');
 
 reset role; select teste.como('admin@teste.local'); set role authenticated;
-select teste.afirmar(public.pode('qualquer_coisa', 'aprovar'), 'admin pode tudo');
+select teste.afirmar(privado.pode('qualquer_coisa', 'aprovar'), 'admin pode tudo');
 update public.perfis set papel = 'rh' where email = 'consulta@teste.local';
 select teste.afirmar((select papel = 'rh' from public.perfis where email = 'consulta@teste.local'), 'admin muda papel');
 update public.perfis set papel = 'consulta' where email = 'consulta@teste.local';

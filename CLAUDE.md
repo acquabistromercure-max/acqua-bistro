@@ -94,7 +94,7 @@ e documentos. Especificação completa em `docs/Briefing_Completo_Acqua_Bistro.p
 - Dados com `@tanstack/react-query` + supabase-js direto nas telas. Ícones: `lucide-react`.
 
 ## Banco: padrões obrigatórios
-- RLS em toda tabela. Políticas usam `public.pode('<modulo>', '<acao>')` (ações: ver, criar, editar, aprovar,
+- RLS em toda tabela. Políticas usam `(select privado.pode('<modulo>', '<acao>'))` (ações: ver, criar, editar, aprovar,
   cancelar, exportar). Administrador sempre pode tudo. Usuário desativado não pode nada (`usuario_ativo()`).
 - Permissões padrão por papel ficam na tabela `permissoes` (editável na tela Permissões). Módulos novos: incluir
   linhas padrão na migration e o módulo em `MODULOS_PERMISSAO`.
@@ -103,6 +103,9 @@ e documentos. Especificação completa em `docs/Briefing_Completo_Acqua_Bistro.p
 - Nada é apagado em registros operacionais: usar status `cancelado` + motivo.
 - Regras ainda não validadas ficam na tabela `configuracoes` (chave/valor), editável pelo admin.
 - Funções `security definer` sempre com `set search_path = ''` e `revoke execute ... from public, anon`.
+  Funções auxiliares de RLS ficam no schema `privado` (não exposto pela API): `privado.pode`, `privado.usuario_ativo`,
+  `privado.eh_administrador`, `privado.meu_papel`. Funções que o site chama via RPC ficam em `public`.
+- Depois de cada push com migration: `bash scripts/alertas-supabase.sh` (alertas de segurança/desempenho).
 
 ## Decisões a validar
 Suposições feitas para não travar o desenvolvimento. Cada uma pode ser mudada depois.
