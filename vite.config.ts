@@ -6,4 +6,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: './',
   plugins: [react()],
+  // O pacote base (React + Supabase) tem ~160 KB comprimido; as telas são carregadas sob demanda.
+  build: { chunkSizeWarningLimit: 700 },
 })

@@ -11,7 +11,7 @@ import './index.css'
  */
 async function tratarRetornoDoEmail() {
   const hash = window.location.hash
-  if (hash.includes('type=recovery')) {
+  if (hash.includes('type=recovery') || hash.includes('type=invite')) {
     await supabase.auth.getSession() // espera o Supabase ler o link e abrir a sessão temporária
     window.location.replace('#/redefinir-senha')
   } else if (hash.includes('error_code=') || hash.includes('error=')) {
