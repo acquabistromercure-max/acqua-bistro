@@ -1,0 +1,14 @@
+ACQUA BISTRÔ — PACOTE DE BRIEFING DO SISTEMA
+
+1. Briefing_Completo_Acqua_Bistro.pdf — documento para leitura e compartilhamento.
+2. Briefing_Completo_Acqua_Bistro.docx — versão editável para revisão do escopo.
+3. Mockup_Login_Acqua_Bistro.png — última versão aprovada da referência visual da tela de login.
+4. Logo_Referencia_Azul.png e Logo_Referencia_Branco.png — referências enviadas da marca.
+
+Conteúdo: visão do produto, identidade visual, login e segurança/IP, recuperação de senha,
+dashboard, café da manhã, colaboradores, diaristas, escalas, ponto, caixa, eventos,
+cartões corporativos, compras, pedidos, documentos, automações, permissões, tecnologia,
+roadmap, critérios de aceite e definições pendentes.
+
+OBSERVAÇÃO: é um projeto conceitual/especificação, não um sistema programado.
+As regras trabalhistas, fiscais e de proteção de dados exigem validação antes da produção.
