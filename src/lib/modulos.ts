@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import {
-  CalendarClock, Coffee, CreditCard, FileText, History, LayoutDashboard, PartyPopper,
+  BarChart3, CalendarClock, Coffee, CreditCard, FileText, History, LayoutDashboard, PartyPopper,
   ShieldCheck, ShoppingCart, Users, UserCog, Wallet,
 } from 'lucide-react'
 
@@ -22,6 +22,7 @@ export const MENU: ItemMenu[] = [
   { rota: '/compras', rotulo: 'Compras e pedidos', icone: ShoppingCart, modulo: 'compras', grupo: 'Operação' },
   { rota: '/colaboradores', rotulo: 'Colaboradores', icone: Users, modulo: 'colaboradores', grupo: 'Pessoas' },
   { rota: '/escalas', rotulo: 'Escalas e ponto', icone: CalendarClock, modulo: 'escalas', grupo: 'Pessoas' },
+  { rota: '/financeiro', rotulo: 'Painel financeiro', icone: BarChart3, modulo: 'contas', grupo: 'Financeiro' },
   { rota: '/caixa', rotulo: 'Caixa', icone: Wallet, modulo: 'caixa', grupo: 'Financeiro' },
   { rota: '/cartoes', rotulo: 'Cartão empresa', icone: CreditCard, modulo: 'cartoes', grupo: 'Financeiro' },
   { rota: '/documentos', rotulo: 'Documentos', icone: FileText, modulo: 'documentos', grupo: 'Pessoas' },

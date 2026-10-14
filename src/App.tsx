@@ -25,6 +25,7 @@ const Compras = lazy(() => import('./pages/compras'))
 const CartaoEmpresa = lazy(() => import('./pages/cartoes'))
 const Eventos = lazy(() => import('./pages/eventos'))
 const Documentos = lazy(() => import('./pages/documentos'))
+const PainelFinanceiro = lazy(() => import('./pages/financeiro'))
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false } },
@@ -73,6 +74,7 @@ const PAGINAS: Record<string, ReactNode> = {
   '/cartoes': <CartaoEmpresa />,
   '/eventos': <Eventos />,
   '/documentos': <Documentos />,
+  '/financeiro': <PainelFinanceiro />,
 }
 
 export default function App() {
