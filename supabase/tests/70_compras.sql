@@ -8,14 +8,10 @@ insert into public.produtos (nome, categoria, unidade, fornecedor_id, preco_refe
 insert into public.produtos (nome, categoria, unidade) values ('Detergente 5L', 'Limpeza', 'un');
 select teste.deve_falhar($$insert into public.produtos (nome, categoria) values ('Queijo coalho', 'Frios')$$, 'produto não duplica na categoria');
 
--- Operador vê o catálogo mas não cria pedido (só "ver" por padrão); consulta também só vê.
+-- Operador vê o catálogo e monta a lista do Rômulo (permissão padrão: ver e criar em compras).
 reset role; select teste.como('operador@teste.local'); set role authenticated;
 select teste.afirmar((select count(*) = 2 from public.produtos), 'operador vê o catálogo');
-select teste.deve_falhar($$insert into public.pedidos (titulo) values ('x')$$, 'operador sem "criar" não abre pedido');
 
--- Libera "criar" para o operador (como o admin faria na tela) e ele monta a lista do Rômulo.
-reset role; insert into public.permissoes (papel, modulo, acao) values ('operador', 'compras', 'criar') on conflict do nothing;
-select teste.como('operador@teste.local'); set role authenticated;
 insert into public.pedidos (titulo, categoria) values ('Lista de frios', 'Frios');
 insert into public.pedido_itens (pedido_id, produto_id, descricao, quantidade, unidade, preco_estimado)
   select p.id, pr.id, pr.nome, 10, 'kg', 29 from public.pedidos p, public.produtos pr where p.titulo = 'Lista de frios' and pr.nome = 'Queijo coalho';
