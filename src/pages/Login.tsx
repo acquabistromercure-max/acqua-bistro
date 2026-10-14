@@ -39,13 +39,13 @@ export default function Login() {
     <LayoutLogin>
       <TituloCartao titulo="Bem-vindo(a) ao Acqua Bistrô" subtitulo="Acesse sua conta para continuar" />
 
-      <form onSubmit={entrar} noValidate={false} className="space-y-6">
+      <form onSubmit={entrar} className="space-y-6 alto:space-y-9">
         {mensagem && <Aviso tipo="sucesso">{mensagem}</Aviso>}
 
         <div>
           <label htmlFor="email" className="rotulo">E-mail</label>
           <div className="campo">
-            <IconeEmail className="h-6 w-6 shrink-0 text-acqua-titulo" />
+            <IconeEmail className="h-6 w-6 shrink-0 text-acqua-icone" />
             <input
               id="email"
               type="email"
@@ -66,7 +66,7 @@ export default function Login() {
 
         {erro && <Aviso tipo="erro">{erro}</Aviso>}
 
-        <div className="pt-4">
+        <div className="pt-4 alto:pt-6">
           <button type="submit" className="botao-principal" disabled={enviando}>
             {enviando ? 'Entrando…' : 'Entrar'}
             <IconeSeta className="absolute right-6 h-7 w-7" />
@@ -77,8 +77,8 @@ export default function Login() {
         </div>
       </form>
 
-      <div className="mt-10 flex items-center gap-5 rounded-xl bg-[#EEF2F6] px-4 py-5 text-[13px] leading-relaxed sm:px-6 sm:text-[15px] text-acqua-titulo">
-        <IconeEmail className="h-6 w-6 shrink-0 text-acqua-titulo sm:h-8 sm:w-8" />
+      <div className="mt-10 flex items-center gap-5 rounded-xl bg-[#F0F3F7] px-4 py-5 text-[13px] leading-relaxed sm:px-6 sm:text-[15px] text-acqua-titulo">
+        <IconeEmail className="h-6 w-6 shrink-0 text-[#277B9D] sm:h-8 sm:w-8" />
         <p className="min-w-0 break-words">
           Os e-mails de recuperação de senha são enviados de <strong>acquabistromercure@gmail.com</strong>.
         </p>

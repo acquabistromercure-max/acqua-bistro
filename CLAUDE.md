@@ -45,6 +45,8 @@ e documentos. Especificação completa em `docs/Briefing_Completo_Acqua_Bistro.p
   cartão à direita "Bem-vindo(a) ao Acqua Bistrô" / "Acesse sua conta para continuar".
 - Imagens provisórias em `src/assets/`: `login-bg.jpg` (recortada do mockup) e `logo.png` (logo de referência
   sem fundo). **Trocar** quando chegarem a foto original e o logo vetorial (SVG).
+- `docs/acqua_bistro_login.svg`: cartão da direita em vetor com as cores exatas (já aplicadas no código).
+  O lado esquerdo dele é o mesmo PNG do mockup embutido — **não** contém a logo em vetor.
 
 ## Regras do produto (do briefing)
 - Uma informação é registrada uma vez e propagada por vínculos — nada de saldos digitados em várias telas.

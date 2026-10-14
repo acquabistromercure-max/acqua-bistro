@@ -53,7 +53,7 @@ export default function LayoutLogin({ children }: { children: ReactNode }) {
       </section>
 
       {/* Lado direito: assinatura + cartão */}
-      <section className="relative flex flex-1 flex-col px-4 pb-8 lg:min-h-screen lg:pl-0 lg:pr-[4.2%] lg:pb-[3.5vh] lg:pt-[2vh]">
+      <section className="relative flex flex-1 flex-col px-4 pb-8 lg:min-h-screen lg:pl-0 lg:pr-[4.2%] lg:pb-[3vh] lg:pt-[2vh]">
         <div className="mb-4 hidden items-center justify-end gap-6 lg:-mr-[3%] lg:flex">
           <p className="text-[11px] font-medium uppercase leading-relaxed tracking-[0.35em] text-acqua-titulo">
             Acqua Bistrô
@@ -73,7 +73,7 @@ export default function LayoutLogin({ children }: { children: ReactNode }) {
 
 export function TituloCartao({ titulo, subtitulo }: { titulo: string; subtitulo: string }) {
   return (
-    <header className="mb-10 text-center lg:mb-14">
+    <header className="mb-10 text-center lg:mb-12 alto:mb-20">
       <h1 className="font-serif text-[clamp(1.75rem,2.3vw,2.5rem)] leading-tight text-acqua-titulo xl:whitespace-nowrap">{titulo}</h1>
       <p className="mt-3 text-[12px] font-medium uppercase tracking-[0.35em] text-acqua-petroleo sm:text-[13px]">
         {subtitulo}

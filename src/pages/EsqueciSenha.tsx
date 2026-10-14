@@ -54,7 +54,7 @@ export default function EsqueciSenha() {
           <div>
             <label htmlFor="email" className="rotulo">E-mail</label>
             <div className="campo">
-              <IconeEmail className="h-6 w-6 shrink-0 text-acqua-titulo" />
+              <IconeEmail className="h-6 w-6 shrink-0 text-acqua-icone" />
               <input
                 id="email"
                 type="email"
