@@ -76,7 +76,7 @@ function FormFornecedor({ fornecedor, aoFechar }: { fornecedor: Fornecedor | nul
       aoFechar()
     },
   })
-  const campo = (k: keyof typeof f) => ({ value: String(f[k]), disabled: !podeSalvar, onChange: (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value }) })
+  const campo = (k: keyof typeof f) => ({ value: String(f[k]), disabled: !podeSalvar, onChange: (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value } as typeof f) })
 
   return (
     <Janela

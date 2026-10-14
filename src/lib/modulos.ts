@@ -23,7 +23,7 @@ export const MENU: ItemMenu[] = [
   { rota: '/colaboradores', rotulo: 'Colaboradores', icone: Users, modulo: 'colaboradores', grupo: 'Pessoas' },
   { rota: '/escalas', rotulo: 'Escalas e ponto', icone: CalendarClock, modulo: 'escalas', grupo: 'Pessoas' },
   { rota: '/caixa', rotulo: 'Caixa', icone: Wallet, modulo: 'caixa', grupo: 'Financeiro' },
-  { rota: '/cartoes', rotulo: 'Cartão empresa', icone: CreditCard, modulo: 'cartoes', grupo: 'Financeiro', emBreve: true },
+  { rota: '/cartoes', rotulo: 'Cartão empresa', icone: CreditCard, modulo: 'cartoes', grupo: 'Financeiro' },
   { rota: '/documentos', rotulo: 'Documentos', icone: FileText, modulo: 'documentos', grupo: 'Pessoas', emBreve: true },
   { rota: '/usuarios', rotulo: 'Usuários', icone: UserCog, modulo: 'usuarios', grupo: 'Administração' },
   { rota: '/permissoes', rotulo: 'Permissões', icone: ShieldCheck, modulo: 'usuarios', grupo: 'Administração' },
