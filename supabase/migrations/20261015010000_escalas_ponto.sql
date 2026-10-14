@@ -71,16 +71,21 @@ as $$
 declare
   v_qtd int;
 begin
+  if not privado.pode('escalas', 'criar') then
+    raise exception 'Você não tem permissão para criar escalas.';
+  end if;
   if p_dias < 1 or p_dias > 62 then
     raise exception 'Escolha entre 1 e 62 dias para copiar.';
   end if;
   if p_origem = p_destino then
     raise exception 'O período de destino precisa ser diferente do de origem.';
   end if;
+  -- Desligados não são copiados. A situação vem de pessoas_escala() porque quem monta a escala
+  -- pode não ter acesso à ficha completa dos colaboradores.
   insert into public.escalas (colaborador_id, data, tipo, turno, hora_inicio, hora_fim, intervalo_minutos, observacao)
   select e.colaborador_id, e.data + (p_destino - p_origem), e.tipo, e.turno, e.hora_inicio, e.hora_fim, e.intervalo_minutos, e.observacao
   from public.escalas e
-  join public.colaboradores c on c.id = e.colaborador_id
+  join public.pessoas_escala() c on c.id = e.colaborador_id
   where e.data between p_origem and p_origem + (p_dias - 1)
     and c.situacao <> 'desligado'
     and (p_colaborador is null or e.colaborador_id = p_colaborador)
