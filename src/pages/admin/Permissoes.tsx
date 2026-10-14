@@ -1,17 +1,16 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check } from 'lucide-react'
+import { Check, Lock } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { ACOES, PAPEIS, type Acao, type Papel } from '../../lib/permissoes'
 import { MODULOS_PERMISSAO } from '../../lib/modulos'
 import { Abas, Carregando, Mensagem, Pagina, cx, mensagemErro } from '../../components/ui'
 
 type Regra = { papel: Papel; modulo: string; acao: Acao }
-const PAPEIS_EDITAVEIS = PAPEIS.filter((p) => p.valor !== 'administrador')
 
 export default function Permissoes() {
   const qc = useQueryClient()
-  const [papel, setPapel] = useState<Papel>('gerente')
+  const [papel, setPapel] = useState<Papel>('administrador')
 
   const regras = useQuery({
     queryKey: ['todas-permissoes'],
@@ -22,6 +21,8 @@ export default function Permissoes() {
     },
   })
 
+  const ehAdmin = papel === 'administrador'
+  const modulos = ehAdmin ? [...MODULOS_PERMISSAO, { modulo: 'usuarios', rotulo: 'Usuários e permissões' }] : MODULOS_PERMISSAO
   const ativas = useMemo(
     () => new Set((regras.data ?? []).filter((r) => r.papel === papel).map((r) => `${r.modulo}:${r.acao}`)),
     [regras.data, papel],
@@ -45,8 +46,18 @@ export default function Permissoes() {
       titulo="Permissões"
       descricao="Marque o que cada papel pode fazer em cada área. O Administrador sempre pode tudo. As mudanças valem na hora e ficam no histórico."
     >
-      <Abas abas={PAPEIS_EDITAVEIS.map((p) => ({ valor: p.valor, rotulo: p.rotulo }))} ativa={papel} aoMudar={setPapel} />
+      <Abas abas={PAPEIS.map((p) => ({ valor: p.valor, rotulo: p.rotulo }))} ativa={papel} aoMudar={setPapel} />
       <p className="mb-4 text-sm text-slate-600">{PAPEIS.find((p) => p.valor === papel)?.descricao}</p>
+      {ehAdmin && (
+        <div className="mb-4">
+          <Mensagem tipo="info">
+            <span className="flex items-center gap-2">
+              <Lock className="h-4 w-4 shrink-0" /> O Administrador tem acesso total: todas as áreas e todas as ações, sempre. Essa coluna não pode ser desmarcada,
+              para o sistema nunca ficar sem alguém que possa tudo.
+            </span>
+          </Mensagem>
+        </div>
+      )}
       {alternar.error && <div className="mb-4"><Mensagem tipo="erro">{mensagemErro(alternar.error)}</Mensagem></div>}
       {regras.isLoading ? (
         <Carregando />
@@ -62,22 +73,23 @@ export default function Permissoes() {
               </tr>
             </thead>
             <tbody className="divide-y divide-acqua-suave">
-              {MODULOS_PERMISSAO.map((m) => (
+              {modulos.map((m) => (
                 <tr key={m.modulo}>
                   <th scope="row" className="px-4 py-2 text-left font-medium text-acqua-titulo">{m.rotulo}</th>
                   {ACOES.map((a) => {
-                    const ligado = ativas.has(`${m.modulo}:${a.valor}`)
+                    const ligado = ehAdmin || ativas.has(`${m.modulo}:${a.valor}`)
                     return (
                       <td key={a.valor} className="px-2 py-2 text-center">
                         <button
                           role="checkbox"
                           aria-checked={ligado}
                           aria-label={`${m.rotulo}: ${a.rotulo}`}
-                          disabled={alternar.isPending}
+                          disabled={ehAdmin || alternar.isPending}
                           onClick={() => alternar.mutate({ modulo: m.modulo, acao: a.valor, ligar: !ligado })}
                           className={cx(
                             'inline-flex h-7 w-7 items-center justify-center rounded-md border transition',
                             ligado ? 'border-acqua-petroleo bg-acqua-petroleo text-white' : 'border-[#C4D3E8] bg-white hover:bg-acqua-suave',
+                            ehAdmin && 'cursor-default opacity-80',
                           )}
                         >
                           {ligado && <Check className="h-4 w-4" />}
