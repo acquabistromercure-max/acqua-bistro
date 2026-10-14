@@ -15,7 +15,7 @@ export default function Fornecedores() {
   return (
     <>
       <div className="mb-4 flex justify-end">
-        {(pode('compras', 'criar') || pode('financeiro', 'criar')) && <Botao icone={<Plus className="h-4 w-4" />} onClick={() => setEditando('novo')}>Fornecedor</Botao>}
+        {(pode('compras', 'criar') || pode('contas', 'criar')) && <Botao icone={<Plus className="h-4 w-4" />} onClick={() => setEditando('novo')}>Fornecedor</Botao>}
       </div>
       {lista.isLoading ? (
         <Carregando />
@@ -54,7 +54,7 @@ function FormFornecedor({ fornecedor, aoFechar }: { fornecedor: Fornecedor | nul
     observacao: fornecedor?.observacao ?? '',
     ativo: fornecedor?.ativo ?? true,
   })
-  const podeSalvar = fornecedor ? pode('compras', 'editar') || pode('financeiro', 'editar') : pode('compras', 'criar') || pode('financeiro', 'criar')
+  const podeSalvar = fornecedor ? pode('compras', 'editar') || pode('contas', 'editar') : pode('compras', 'criar') || pode('contas', 'criar')
   const salvar = useMutation({
     mutationFn: async () => {
       const dados = {

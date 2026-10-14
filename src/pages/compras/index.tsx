@@ -15,7 +15,7 @@ export default function Compras() {
     { valor: 'pedidos', rotulo: 'Lista de pedidos' },
     { valor: 'catalogo', rotulo: 'Catálogo de produtos' },
     { valor: 'fornecedores', rotulo: 'Fornecedores' },
-    ...(pode('financeiro') || pode('compras', 'editar') ? [{ valor: 'contas' as const, rotulo: 'Contas a pagar' }] : []),
+    ...(pode('contas') ? [{ valor: 'contas' as const, rotulo: 'Contas a pagar' }] : []),
   ]
   const pedida = params.get('aba') as Aba | null
   const aba: Aba = abas.some((a) => a.valor === pedida) ? pedida! : 'pedidos'

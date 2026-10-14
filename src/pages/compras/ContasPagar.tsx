@@ -115,8 +115,8 @@ export default function ContasPagar() {
           ]}
         />
         <div className="ml-auto flex gap-2 self-end">
-          {pode('financeiro', 'exportar') && <Botao variante="secundario" icone={<Download className="h-4 w-4" />} onClick={exportar}>Exportar</Botao>}
-          {(pode('financeiro', 'criar') || pode('compras', 'editar')) && <Botao icone={<Plus className="h-4 w-4" />} onClick={() => setNova(true)}>Nova conta</Botao>}
+          {pode('contas', 'exportar') && <Botao variante="secundario" icone={<Download className="h-4 w-4" />} onClick={exportar}>Exportar</Botao>}
+          {(pode('contas', 'criar') || pode('compras', 'editar')) && <Botao icone={<Plus className="h-4 w-4" />} onClick={() => setNova(true)}>Nova conta</Botao>}
         </div>
       </div>
       {contas.isLoading ? (
@@ -270,12 +270,12 @@ function JanelaConta({ conta, nomeFornecedor, aoFechar }: { conta: ContaPagar; n
         titulo={conta.descricao}
         rodape={
           <>
-            <BotaoExcluir modulo="financeiro" tabela="contas_pagar" id={conta.id} descricao={`a conta “${conta.descricao}”`} aoExcluir={() => { atualizar(); aoFechar() }} />
-            {conta.situacao === 'aberta' && pode('financeiro', 'cancelar') && <Botao variante="perigo" onClick={() => setCancelando(true)}>Cancelar</Botao>}
-            {conta.situacao === 'paga' && pode('financeiro', 'editar') && (
+            <BotaoExcluir modulo="contas" tabela="contas_pagar" id={conta.id} descricao={`a conta “${conta.descricao}”`} aoExcluir={() => { atualizar(); aoFechar() }} />
+            {conta.situacao === 'aberta' && pode('contas', 'cancelar') && <Botao variante="perigo" onClick={() => setCancelando(true)}>Cancelar</Botao>}
+            {conta.situacao === 'paga' && pode('contas', 'editar') && (
               <Botao variante="secundario" carregando={mudar.isPending} onClick={() => mudar.mutate({ situacao: 'aberta', pago_em: null, valor_pago: null })}>Desfazer pagamento</Botao>
             )}
-            {conta.situacao === 'aberta' && pode('financeiro', 'editar') && (
+            {conta.situacao === 'aberta' && pode('contas', 'editar') && (
               <Botao icone={<CheckCircle2 className="h-4 w-4" />} carregando={mudar.isPending} onClick={() => mudar.mutate({ situacao: 'paga', pago_em: pagoEm, valor_pago: lerMoeda(valorPago) ?? conta.valor })}>
                 Marcar como paga
               </Botao>
@@ -295,7 +295,7 @@ function JanelaConta({ conta, nomeFornecedor, aoFechar }: { conta: ContaPagar; n
             {conta.situacao === 'paga' && (<><dt className="text-slate-500">Paga</dt><dd>{formatarData(conta.pago_em)} · {formatarMoeda(conta.valor_pago)} por {nome(conta.pago_por)}</dd></>)}
             {conta.motivo_cancelamento && (<><dt className="text-slate-500">Cancelada</dt><dd>{conta.motivo_cancelamento}</dd></>)}
           </dl>
-          {conta.situacao === 'aberta' && pode('financeiro', 'editar') && (
+          {conta.situacao === 'aberta' && pode('contas', 'editar') && (
             <div className="grid grid-cols-2 gap-3 rounded-xl bg-acqua-gelo p-3">
               <Campo rotulo="Pago em" type="date" value={pagoEm} onChange={(e) => setPagoEm(e.target.value)} />
               <Campo rotulo="Valor pago (R$)" inputMode="decimal" value={valorPago} onChange={(e) => setValorPago(e.target.value)} ajuda="Com juros ou desconto, se houver." />

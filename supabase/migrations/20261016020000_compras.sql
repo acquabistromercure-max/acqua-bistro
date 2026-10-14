@@ -21,11 +21,11 @@ create table public.fornecedores (
 
 alter table public.fornecedores enable row level security;
 create policy "ver fornecedores" on public.fornecedores for select to authenticated
-  using ((select privado.pode('compras', 'ver')) or (select privado.pode('financeiro', 'ver')) or (select privado.pode('cartoes', 'ver')));
+  using ((select privado.pode('compras', 'ver')) or (select privado.pode('contas', 'ver')) or (select privado.pode('cartoes', 'ver')));
 create policy "criar fornecedores" on public.fornecedores for insert to authenticated
-  with check ((select privado.pode('compras', 'criar')) or (select privado.pode('financeiro', 'criar')));
+  with check ((select privado.pode('compras', 'criar')) or (select privado.pode('contas', 'criar')));
 create policy "editar fornecedores" on public.fornecedores for update to authenticated
-  using ((select privado.pode('compras', 'editar')) or (select privado.pode('financeiro', 'editar')));
+  using ((select privado.pode('compras', 'editar')) or (select privado.pode('contas', 'editar')));
 create policy "excluir fornecedores" on public.fornecedores for delete to authenticated
   using ((select privado.pode('compras', 'excluir')));
 create trigger fornecedores_auditoria after insert or update or delete on public.fornecedores
@@ -203,13 +203,13 @@ create index contas_pagar_vencimento on public.contas_pagar (situacao, venciment
 
 alter table public.contas_pagar enable row level security;
 create policy "ver contas a pagar" on public.contas_pagar for select to authenticated
-  using ((select privado.pode('financeiro', 'ver')) or (select privado.pode('compras', 'ver')));
+  using ((select privado.pode('contas', 'ver')));
 create policy "lancar contas a pagar" on public.contas_pagar for insert to authenticated
-  with check (((select privado.pode('financeiro', 'criar')) or (select privado.pode('compras', 'editar'))) and situacao = 'aberta');
+  with check (((select privado.pode('contas', 'criar')) or (select privado.pode('compras', 'editar'))) and situacao = 'aberta');
 create policy "alterar contas a pagar" on public.contas_pagar for update to authenticated
-  using ((select privado.pode('financeiro', 'editar')) or (select privado.pode('financeiro', 'cancelar')) or (select privado.pode('financeiro', 'aprovar')));
+  using ((select privado.pode('contas', 'editar')) or (select privado.pode('contas', 'cancelar')) or (select privado.pode('contas', 'aprovar')));
 create policy "excluir contas a pagar" on public.contas_pagar for delete to authenticated
-  using ((select privado.pode('financeiro', 'excluir')));
+  using ((select privado.pode('contas', 'excluir')));
 
 create function public.controlar_conta_pagar()
 returns trigger
@@ -218,7 +218,7 @@ set search_path = ''
 as $$
 begin
   if old.situacao = 'cancelada' then raise exception 'Conta cancelada não pode ser alterada.'; end if;
-  if new.situacao = 'cancelada' and old.situacao <> 'cancelada' and not privado.pode('financeiro', 'cancelar') then
+  if new.situacao = 'cancelada' and old.situacao <> 'cancelada' and not privado.pode('contas', 'cancelar') then
     raise exception 'Você não tem permissão para cancelar contas.';
   end if;
   if new.situacao = 'paga' and old.situacao <> 'paga' then new.pago_por := auth.uid(); end if;
@@ -247,5 +247,10 @@ on conflict (chave) do nothing;
 
 insert into public.permissoes (papel, modulo, acao) values
   ('operador', 'compras', 'ver'),
-  ('financeiro', 'compras', 'criar')
+  ('financeiro', 'compras', 'criar'),
+  -- Contas a pagar: permissão própria (o RH vê o financeiro do colaborador, mas não as contas da empresa).
+  ('gerente', 'contas', 'ver'), ('gerente', 'contas', 'criar'), ('gerente', 'contas', 'editar'), ('gerente', 'contas', 'aprovar'),
+  ('gerente', 'contas', 'cancelar'), ('gerente', 'contas', 'exportar'),
+  ('financeiro', 'contas', 'ver'), ('financeiro', 'contas', 'criar'), ('financeiro', 'contas', 'editar'), ('financeiro', 'contas', 'aprovar'),
+  ('financeiro', 'contas', 'cancelar'), ('financeiro', 'contas', 'exportar')
 on conflict do nothing;

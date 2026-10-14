@@ -123,7 +123,7 @@ export default function PedidoJanela({ pedido, aoFechar }: { pedido: Pedido; aoF
             <BotaoExcluir modulo="compras" tabela="pedidos" id={pedido.id} descricao={`o pedido #${pedido.numero}`} aoExcluir={() => { atualizar(); aoFechar() }} />
             {podeCancelar && <Botao variante="perigo" onClick={() => setCancelando(true)}>Cancelar</Botao>}
             <Botao variante="secundario" icone={<Printer className="h-4 w-4" />} onClick={imprimir}>Imprimir</Botao>
-            {['comprado', 'recebido', 'concluido'].includes(pedido.situacao) && pode('financeiro', 'criar') && (
+            {['comprado', 'recebido', 'concluido'].includes(pedido.situacao) && pode('contas', 'criar') && (
               <Botao variante="secundario" icone={<Receipt className="h-4 w-4" />} carregando={gerarConta.isPending} onClick={() => gerarConta.mutate()}>
                 Gerar conta a pagar
               </Botao>
