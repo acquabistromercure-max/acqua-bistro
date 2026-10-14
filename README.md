@@ -1,6 +1,6 @@
 # Acqua Bistrô — Sistema Administrativo
 
-Site: https://acquabistromercure-max.github.io/acqua-bistro/
+Site: https://acquabistro.site/
 
 Tudo roda no Codespace, no GitHub e no Supabase. Detalhes, regras e decisões estão em [CLAUDE.md](CLAUDE.md);
 o briefing completo está em [docs/](docs/).

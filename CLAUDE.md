@@ -13,7 +13,10 @@ e documentos. Especificação completa em `docs/Briefing_Completo_Acqua_Bistro.p
 - **Codespace** (este ambiente): onde o código é editado. Node 22. Supabase CLI instalado pelo devcontainer.
 - **GitHub**: `acquabistromercure-max/acqua-bistro` (público). Branch principal: `main`.
 - **GitHub Pages**: o site é publicado pelo workflow `.github/workflows/deploy.yml` a cada push na `main`.
-  Endereço: https://acquabistromercure-max.github.io/acqua-bistro/
+  Endereço oficial: **https://acquabistro.site/** (domínio comprado na Hostinger; DNS na Hostinger:
+  4 registros A de `@` para 185.199.108.153 / .109.153 / .110.153 / .111.153 e CNAME `www` →
+  `acquabistromercure-max.github.io`; domínio cadastrado em GitHub → Settings → Pages → Custom domain,
+  com "Enforce HTTPS"). O endereço antigo https://acquabistromercure-max.github.io/acqua-bistro/ redireciona.
 - **Supabase**: projeto `wiocgyawzwuaqcunubrw` (URL `https://wiocgyawzwuaqcunubrw.supabase.co`).
   A integração com o GitHub aplica automaticamente o que estiver em `supabase/migrations/` a cada push na `main`.
   `supabase/config.toml` vale só para ambiente local, não muda o projeto de produção.
@@ -22,7 +25,8 @@ e documentos. Especificação completa em `docs/Briefing_Completo_Acqua_Bistro.p
 - Vite + React + TypeScript + Tailwind CSS + Supabase JS (Auth, banco Postgres, Storage).
 - Sem backend próprio (o briefing sugeria Next.js + NestJS; trocado por simplicidade e hospedagem gratuita).
   Regras de segurança ficam no banco: **RLS em toda tabela**, funções no Postgres e, se preciso, Edge Functions.
-- Rotas com `HashRouter` (o GitHub Pages não tem reescrita de URL). `base` do Vite = `/acqua-bistro/`.
+- Rotas com `HashRouter` (o GitHub Pages não tem reescrita de URL). `base` do Vite = `./` (relativo),
+  para funcionar no domínio próprio e no endereço do GitHub.
 - Variáveis: `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`.
   Local: arquivo `.env` (ignorado pelo git; modelo em `.env.example`). Deploy: secrets do repositório.
   A anon key é pública por natureza; **nunca** colocar a `service_role` no frontend nem no repositório.
@@ -59,6 +63,8 @@ e documentos. Especificação completa em `docs/Briefing_Completo_Acqua_Bistro.p
 - 14/10/2026: primeiro administrador = `acquabistromercure@gmail.com`.
 - 14/10/2026: e-mail de recuperação usa o envio padrão do Supabase por enquanto (limite baixo por hora).
   Depois: SMTP do Gmail `acquabistromercure@gmail.com` com "senha de app" (Supabase → Authentication → SMTP).
+- 14/10/2026: domínio próprio acquabistro.site (Hostinger) apontado para o GitHub Pages.
+  Supabase → Authentication → URL Configuration deve ter Site URL e Redirect URL nesse domínio.
 - 14/10/2026: MFA, histórico de acessos com IP e área "Segurança e sessões" ficam para depois do login.
 
 ## Roadmap (briefing, seção 16)
