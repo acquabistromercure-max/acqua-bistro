@@ -9,3 +9,6 @@ dist
 
 # Prévias locais (servidor scripts/previa.ps1)
 .preview/
+
+# Planilhas reais da operação (dados pessoais e financeiros): NUNCA enviar ao GitHub — o repositório é público
+planilhas-reais/

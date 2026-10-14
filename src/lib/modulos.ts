@@ -17,7 +17,7 @@ export type ItemMenu = {
 
 export const MENU: ItemMenu[] = [
   { rota: '/', rotulo: 'Painel', icone: LayoutDashboard, modulo: 'painel', grupo: 'Operação' },
-  { rota: '/cafes', rotulo: 'Café da manhã', icone: Coffee, modulo: 'cafes', grupo: 'Operação', emBreve: true },
+  { rota: '/cafes', rotulo: 'Café da manhã', icone: Coffee, modulo: 'cafes', grupo: 'Operação' },
   { rota: '/eventos', rotulo: 'Eventos', icone: PartyPopper, modulo: 'eventos', grupo: 'Operação', emBreve: true },
   { rota: '/compras', rotulo: 'Compras e pedidos', icone: ShoppingCart, modulo: 'compras', grupo: 'Operação', emBreve: true },
   { rota: '/colaboradores', rotulo: 'Colaboradores', icone: Users, modulo: 'colaboradores', grupo: 'Pessoas' },

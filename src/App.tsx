@@ -19,6 +19,7 @@ const Permissoes = lazy(() => import('./pages/admin/Permissoes'))
 const Auditoria = lazy(() => import('./pages/admin/Auditoria'))
 const Colaboradores = lazy(() => import('./pages/colaboradores'))
 const EscalasPonto = lazy(() => import('./pages/escalas'))
+const Cafes = lazy(() => import('./pages/cafes'))
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1, refetchOnWindowFocus: false } },
@@ -61,6 +62,7 @@ const PAGINAS: Record<string, ReactNode> = {
   '/auditoria': <Auditoria />,
   '/colaboradores': <Colaboradores />,
   '/escalas': <EscalasPonto />,
+  '/cafes': <Cafes />,
 }
 
 export default function App() {

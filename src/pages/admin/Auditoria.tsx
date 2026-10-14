@@ -30,6 +30,12 @@ export const NOMES_TABELAS: Record<string, string> = {
   escalas: 'Escalas',
   registros_ponto: 'Ponto',
   fechamentos_ponto: 'Fechamentos da folha-ponto',
+  cafe_dias: 'Café do hotel (dia)',
+  cafe_ajustes: 'Café por fora da lista',
+  consumos_quarto: 'Borderô (conta do quarto)',
+  cafe_mensalistas: 'Mensalistas do café',
+  cafe_vendas: 'Cafés pagos na hora',
+  quinzenas_hotel: 'Quinzenas com o hotel',
 }
 
 const POR_PAGINA = 50
