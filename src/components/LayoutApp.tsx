@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { LogOut, Menu, X } from 'lucide-react'
-import logo from '../assets/logo.png'
 import { supabase } from '../lib/supabase'
 import { MENU, type ItemMenu } from '../lib/modulos'
 import { rotuloPapel, usePermissoes } from '../lib/permissoes'
 import { cx } from './ui'
+import LogoAcqua from './LogoAcqua'
 
 const GRUPOS: ItemMenu['grupo'][] = ['Operação', 'Pessoas', 'Financeiro', 'Administração']
 
@@ -93,7 +93,7 @@ export default function LayoutApp() {
       {/* Menu fixo no computador */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-acqua-suave bg-white lg:flex print:!hidden">
         <div className="px-6 pb-2 pt-5">
-          <img src={logo} alt="Acqua Bistrô" className="h-16" />
+          <LogoAcqua className="h-16 w-auto" />
           <p className="mt-2 text-[10px] uppercase tracking-[0.3em] text-acqua-titulo">Sistema administrativo</p>
           <span className="mt-2 block h-px w-12 bg-acqua-dourado" />
         </div>
@@ -107,7 +107,7 @@ export default function LayoutApp() {
           <div className="absolute inset-0 bg-acqua-titulo/40" onClick={() => setMenuAberto(false)} />
           <aside className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-white shadow-xl">
             <div className="flex items-center justify-between px-5 pt-4">
-              <img src={logo} alt="Acqua Bistrô" className="h-12" />
+              <LogoAcqua className="h-12 w-auto" />
               <button onClick={() => setMenuAberto(false)} className="rounded p-2 text-acqua-titulo hover:bg-acqua-suave" aria-label="Fechar menu">
                 <X className="h-5 w-5" />
               </button>
@@ -127,7 +127,7 @@ export default function LayoutApp() {
           <button onClick={() => setMenuAberto(true)} className="rounded-lg p-2 text-acqua-titulo hover:bg-acqua-suave lg:hidden" aria-label="Abrir menu">
             <Menu className="h-5 w-5" />
           </button>
-          <img src={logo} alt="" className="h-8 lg:hidden" />
+          <LogoAcqua className="h-8 w-auto lg:hidden" />
           <p className="hidden text-sm font-semibold text-acqua-titulo lg:block">{atual?.rotulo}</p>
           <div className="ml-auto flex items-center gap-3">
             <span className="hidden text-[10px] uppercase tracking-[0.3em] text-acqua-titulo sm:inline">Acqua Bistrô</span>

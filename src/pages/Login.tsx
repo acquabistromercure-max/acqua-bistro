@@ -39,7 +39,7 @@ export default function Login() {
     <LayoutLogin>
       <TituloCartao titulo="Bem-vindo(a) ao Acqua Bistrô" subtitulo="Acesse sua conta para continuar" />
 
-      <form onSubmit={entrar} className="space-y-6 alto:space-y-9">
+      <form onSubmit={entrar} className="space-y-5">
         {mensagem && <Aviso tipo="sucesso">{mensagem}</Aviso>}
 
         <div>
@@ -60,29 +60,22 @@ export default function Login() {
         </div>
 
         <div>
-          <label htmlFor="senha" className="rotulo">Senha</label>
+          <div className="mb-2 flex items-baseline justify-between gap-3">
+            <label htmlFor="senha" className="rotulo !mb-0">Senha</label>
+            <Link to="/esqueci-senha" className="link text-sm">Esqueci minha senha</Link>
+          </div>
           <CampoSenha id="senha" valor={senha} aoMudar={setSenha} autoComplete="current-password" />
         </div>
 
         {erro && <Aviso tipo="erro">{erro}</Aviso>}
 
-        <div className="pt-4 alto:pt-6">
+        <div className="pt-3">
           <button type="submit" className="botao-principal" disabled={enviando}>
             {enviando ? 'Entrando…' : 'Entrar'}
-            <IconeSeta className="absolute right-6 h-7 w-7" />
+            <IconeSeta className="absolute right-5 h-6 w-6" />
           </button>
-          <div className="mt-6 text-right">
-            <Link to="/esqueci-senha" className="link">Esqueci minha senha</Link>
-          </div>
         </div>
       </form>
-
-      <div className="mt-10 flex items-center gap-5 rounded-xl bg-[#F0F3F7] px-4 py-5 text-[13px] leading-relaxed sm:px-6 sm:text-[15px] text-acqua-titulo">
-        <IconeEmail className="h-6 w-6 shrink-0 text-[#277B9D] sm:h-8 sm:w-8" />
-        <p className="min-w-0 break-words">
-          Os e-mails de recuperação de senha são enviados de <strong>acquabistromercure@gmail.com</strong>.
-        </p>
-      </div>
     </LayoutLogin>
   )
 }

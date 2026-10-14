@@ -6,3 +6,6 @@ dist
 !.env.example
 *.tsbuildinfo
 .DS_Store
+
+# Prévias locais (servidor scripts/previa.ps1)
+.preview/

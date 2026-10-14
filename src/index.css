@@ -24,18 +24,18 @@
 
 @layer components {
   .campo {
-    @apply flex h-14 items-center gap-3 rounded-lg border border-[#C4D3E8] bg-white px-4 shadow-sm transition
+    @apply flex h-12 items-center gap-3 rounded-lg border border-[#C4D3E8] bg-white px-4 shadow-sm transition
       focus-within:border-acqua-petroleo focus-within:ring-2 focus-within:ring-acqua/40;
   }
   .campo input {
     @apply h-full w-full bg-transparent text-base text-acqua-titulo outline-none placeholder:text-[#8090B3];
   }
   .rotulo {
-    @apply mb-2 block text-[17px] font-bold text-acqua-titulo;
+    @apply mb-2 block text-[15px] font-semibold text-acqua-titulo;
   }
   .botao-principal {
-    @apply relative flex h-14 w-full items-center justify-center rounded-lg bg-gradient-to-r from-[#539EB1] to-[#126E89]
-      font-serif text-xl text-white shadow-md transition hover:brightness-110 focus-visible:outline-none
+    @apply relative flex h-12 w-full items-center justify-center rounded-lg bg-gradient-to-r from-[#539EB1] to-[#126E89]
+      font-serif text-lg text-white shadow-md transition hover:brightness-110 focus-visible:outline-none
       focus-visible:ring-2 focus-visible:ring-acqua focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-70;
   }
   .link {

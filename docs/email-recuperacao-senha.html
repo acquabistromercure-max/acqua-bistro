@@ -1,0 +1,34 @@
+<!-- Modelo do e-mail "Reset password" do Supabase (Authentication → Emails → Reset password).
+     Assunto sugerido: Acqua Bistrô — crie sua nova senha
+     Colar o conteúdo abaixo (a partir de <table) no campo "Message body". -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7FAFB;padding:32px 12px;font-family:Arial,Helvetica,sans-serif;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border:1px solid #E4F2F5;border-radius:16px;">
+        <tr>
+          <td style="padding:32px 32px 8px;text-align:center;">
+            <div style="font-family:Georgia,serif;font-size:30px;letter-spacing:6px;color:#3B5778;">ACQUA</div>
+            <div style="font-family:Georgia,serif;font-style:italic;font-size:20px;color:#D6992B;margin-top:2px;">Bistrô</div>
+            <div style="width:48px;height:1px;background:#D9A126;margin:18px auto 0;"></div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 32px 8px;color:#102C61;font-size:15px;line-height:1.6;">
+            <p style="font-family:Georgia,serif;font-size:22px;margin:0 0 12px;text-align:center;">Crie sua nova senha</p>
+            <p style="margin:0 0 12px;">Olá! Recebemos um pedido para redefinir a senha do seu acesso ao Sistema Administrativo do Acqua Bistrô.</p>
+            <p style="margin:0 0 24px;">Clique no botão abaixo para criar uma nova senha. O link vale por pouco tempo e só pode ser usado uma vez.</p>
+            <p style="text-align:center;margin:0 0 24px;">
+              <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#126E89;color:#ffffff;text-decoration:none;font-weight:bold;padding:14px 28px;border-radius:8px;">Criar nova senha</a>
+            </p>
+            <p style="margin:0 0 12px;font-size:13px;color:#4D5B73;">Se você não pediu a troca de senha, pode ignorar este e-mail: sua senha atual continua valendo.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 32px 28px;text-align:center;font-size:12px;color:#7A869A;border-top:1px solid #E4F2F5;">
+            Acqua Bistrô · Gastronomia que conecta pessoas · Fortaleza
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
