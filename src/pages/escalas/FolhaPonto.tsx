@@ -6,6 +6,7 @@ import { usePermissoes } from '../../lib/permissoes'
 import { useNomesUsuarios } from '../../lib/hooks'
 import { formatarData, formatarDataHora, formatarMinutos, hojeISO } from '../../lib/formatos'
 import { baixarCSV } from '../../lib/exportar'
+import { esc, imprimirDocumento } from '../../lib/imprimir'
 import { NOMES_DIAS, diaDaSemana, diasDoMes, horaCurta, linhaDoDia, resumoEscala, totalizar, type LinhaFolha } from '../../lib/ponto'
 import { AreaTexto, Botao, Campo, Cartao, Carregando, Confirmar, Janela, Mensagem, Selecao, Selo, Vazio, cx, mensagemErro } from '../../components/ui'
 import { BotaoExcluir } from '../../components/registros'
@@ -106,6 +107,59 @@ export default function FolhaPonto({ colaboradorId: fixo }: { colaboradorId?: st
       { titulo: 'Observações', valor: (l) => l.divergencias.join(', ') },
     ])
 
+  // Folha para imprimir e preencher à mão: uma página A4, só dia, escala, horários e assinatura.
+  const imprimir = () => {
+    const linhasHtml = linhas
+      .map((l) => {
+        const m = l.marcacao
+        const especial = l.domingo || l.feriado
+        return `<tr class="${especial ? 'especial' : ''}">
+          <td class="dia">${esc(l.data.slice(8, 10))} <span>${esc(NOMES_DIAS[diaDaSemana(l.data)])}${l.feriado ? ' · fer.' : ''}</span></td>
+          <td>${esc(l.escala ? resumoEscala(l.escala) : '')}</td>
+          <td>${esc(horaCurta(m?.entrada))}</td>
+          <td>${esc(horaCurta(m?.saida_intervalo))}</td>
+          <td>${esc(horaCurta(m?.volta_intervalo))}</td>
+          <td>${esc(horaCurta(m?.saida))}</td>
+          <td></td>
+        </tr>`
+      })
+      .join('')
+    imprimirDocumento(
+      `Folha-ponto ${pessoa?.nome ?? ''} ${competencia}`,
+      `<h1>Folha-ponto — ${esc(nomeCompetencia(competencia))}</h1>
+       <div class="campos">
+         <div><b>Colaborador:</b>${esc(pessoa?.nome)}</div>
+         <div><b>Função:</b>${esc(pessoa?.funcao ?? '')}</div>
+         <div><b>Horário:</b>${esc(pessoa?.horario_entrada ? `${horaCurta(pessoa.horario_entrada)} às ${horaCurta(pessoa.horario_saida)}` : '')}</div>
+         <div><b>Mês:</b>${esc(nomeCompetencia(competencia))}</div>
+       </div>
+       <table class="folha">
+         <colgroup><col style="width:11%"><col style="width:15%"><col style="width:12%"><col style="width:13%"><col style="width:13%"><col style="width:12%"><col></colgroup>
+         <thead><tr><th>Dia</th><th>Escala</th><th>Entrada</th><th>Saída intervalo</th><th>Volta intervalo</th><th>Saída</th><th>Assinatura</th></tr></thead>
+         <tbody>${linhasHtml}</tbody>
+       </table>
+       <div class="assinaturas"><div>${esc(pessoa?.nome)}</div><div>Responsável — Acqua Bistrô</div></div>`,
+      {
+        estilo: `
+          @page { size: A4 portrait; margin: 9mm 11mm; }
+          body { font-size: 10px; line-height: 1.2; }
+          header { margin-bottom: 6px; padding-bottom: 4px; }
+          .marca { font-size: 17px; }
+          h1 { font-size: 14px; margin: 0 0 6px; }
+          .campos { margin-bottom: 6px; gap: 2px 20px; }
+          table.folha { margin: 0; table-layout: fixed; }
+          table.folha th, table.folha td { border: 1px solid #7A8BA6; padding: 0 5px; height: 6.8mm; vertical-align: middle; }
+          table.folha th { height: 7mm; font-size: 8.5px; text-align: center; }
+          table.folha td.dia { font-weight: 700; white-space: nowrap; }
+          table.folha td.dia span { font-weight: 400; color: #4D5B73; }
+          table.folha tr.especial td { background: #F1F4F8; }
+          table.folha tr { page-break-inside: avoid; }
+          .assinaturas { margin-top: 14mm; }
+        `,
+      },
+    )
+  }
+
   const carregando = escalas.isLoading || registros.isLoading || fechamentos.isLoading
   const erro = escalas.error || registros.error || fechamentos.error
 
@@ -125,7 +179,7 @@ export default function FolhaPonto({ colaboradorId: fixo }: { colaboradorId?: st
         <Campo rotulo="Mês" type="month" value={competencia} onChange={(e) => e.target.value && setCompetencia(e.target.value)} className="w-44" />
         {colaboradorId && (
           <div className="flex flex-wrap gap-2 sm:ml-auto">
-            <Botao variante="secundario" icone={<Printer className="h-4 w-4" />} onClick={() => window.print()}>Imprimir</Botao>
+            <Botao variante="secundario" icone={<Printer className="h-4 w-4" />} onClick={imprimir} title="Folha A4 para preencher e assinar">Imprimir</Botao>
             {pode('ponto', 'exportar') && (
               <Botao variante="secundario" icone={<Download className="h-4 w-4" />} onClick={exportar}>Exportar</Botao>
             )}
@@ -179,7 +233,7 @@ export default function FolhaPonto({ colaboradorId: fixo }: { colaboradorId?: st
           </div>
 
           <div className="overflow-x-auto rounded-xl border border-acqua-suave bg-white print:overflow-visible">
-            <table className="w-full text-left text-xs print:text-[9px]">
+            <table className="w-full border-collapse text-left text-xs print:text-[9px] [&_td]:border [&_td]:border-acqua-suave [&_th]:border [&_th]:border-acqua-suave">
               <thead className="bg-acqua-gelo text-acqua-petroleo">
                 <tr>
                   {['Dia', 'Escala', 'Entrada', 'Intervalo', 'Saída', 'Previsto', 'Trabalhado', 'Saldo', 'Noturno', 'Observações'].map((t) => (
@@ -187,7 +241,7 @@ export default function FolhaPonto({ colaboradorId: fixo }: { colaboradorId?: st
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-acqua-suave tabular-nums">
+              <tbody className="tabular-nums">
                 {linhas.map((l) => (
                   <tr key={l.data} className={cx((l.domingo || l.feriado) && 'bg-red-50/40')}>
                     <td className="whitespace-nowrap px-2 py-1.5 font-semibold text-acqua-titulo">

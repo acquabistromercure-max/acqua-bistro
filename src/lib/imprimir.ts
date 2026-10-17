@@ -34,7 +34,7 @@ const ESTILO = `
 `
 
 /** Abre a impressão de um documento. "corpo" é HTML já escapado (use esc() nos valores). */
-export function imprimirDocumento(titulo: string, corpo: string, opcoes: { subtitulo?: string } = {}) {
+export function imprimirDocumento(titulo: string, corpo: string, opcoes: { subtitulo?: string; estilo?: string } = {}) {
   const janela = window.open('', '_blank', 'width=900,height=1000')
   if (!janela) {
     alert('O navegador bloqueou a janela de impressão. Permita pop-ups para acquabistro.site.')
@@ -42,7 +42,7 @@ export function imprimirDocumento(titulo: string, corpo: string, opcoes: { subti
   }
   const agora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Fortaleza' })
   janela.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${esc(titulo)}</title>
-    <style>${ESTILO}</style></head><body>
+    <style>${ESTILO}${opcoes.estilo ?? ''}</style></head><body>
     <header><div class="marca">ACQUA<small>Bistrô</small></div>
     <div class="meta">${opcoes.subtitulo ? `${esc(opcoes.subtitulo)}<br>` : ''}Emitido em ${esc(agora)}</div></header>
     ${corpo}
