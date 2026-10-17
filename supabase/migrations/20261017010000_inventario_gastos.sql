@@ -269,6 +269,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = ''
+as $$
 declare
   v_anterior text := coalesce(current_setting('acqua.sistema', true), 'off');
   v_itens uuid[];
