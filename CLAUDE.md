@@ -212,7 +212,18 @@ Feito, publicado e com migration aplicada em produção (conferido com `scripts/
    (`/colaboradores/novo?vinculo=diarista`); ocorrência aprovada → "Gerar desconto" (`origem_tipo='ocorrencia'`); café
    "Faturar para empresa" com `cafe_ajustes.cliente_id` (clientes de Eventos).
 
-Migrations aplicadas: `20261014010000` a `20261016060000`. Testes: Vitest (`src/lib/*.test.ts`) + RLS em `supabase/tests/`.
+13. **Inventário + Obra, Manutenção e Investimentos** (17/10/2026) — `inventario_itens` (quantidade = soma dos
+   `inventario_movimentos`, nunca digitada), quebra/perda só por `registrar_quebra()` (permissão `inventario/aprovar`,
+   gerente/admin; se foi colaborador cria ocorrência `quebra` aprovada na ficha, cancelamentos sincronizam nos dois
+   sentidos), contagens (`fechar_contagem()` grava ajuste = contado − esperado, que é o "mudou sem ocorrência";
+   período até a última contagem fechada fica travado; `reabrir_contagem()` só a última). `gastos` (tipo obra/manutencao/
+   investimento) com `pagamento` pago/caixa/fundo/cartao/a_pagar: o gatilho `sincronizar_gasto` cria UM registro no
+   caixa, cartão ou contas (coluna `gasto_id`, cascade) e investimento com item entra no inventário; trocar a forma de
+   pagamento = excluir e lançar. Painel financeiro: gasto "pago" entra direto; os outros vêm do lugar gerado (categoria
+   Obra/Manutenção/Investimento). Anexos no bucket privado `gastos`. Também: prévia do link no WhatsApp
+   (`og:*` em `index.html`, imagem `public/compartilhar.jpg` 1200×630).
+
+Migrations aplicadas: `20261014010000` a `20261017010000`. Testes: Vitest (`src/lib/*.test.ts`) + RLS em `supabase/tests/`.
 
 **Planilhas reais da operação**: ficam em `planilhas-reais/` (ignorada pelo git, dados pessoais) com o resumo em
 `planilhas-reais/ANALISE.md`. Ler o resumo antes de desenhar caixa, compras, passagens e contabilidade.
