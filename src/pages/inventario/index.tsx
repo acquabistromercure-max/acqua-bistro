@@ -50,7 +50,7 @@ function Historico({ soDiferencas }: { soDiferencas?: boolean }) {
   )
   const validos = lista.filter((m) => m.situacao === 'registrado')
   const perdas = validos.filter((m) => TIPOS_PERDA.includes(m.tipo))
-  const valor = (l: typeof lista) => l.reduce((s, m) => s + Math.abs(Number(m.quantidade)) * Number(porId.get(m.item_id)?.valor_unitario ?? 0), 0)
+  const valor = (l: typeof lista) => l.reduce((s, m) => s + Math.abs(Number(m.quantidade)) * Number(porId.get(m.item_id ?? '')?.valor_unitario ?? 0), 0)
   const faltou = validos.filter((m) => m.quantidade < 0)
   const sobrou = validos.filter((m) => m.quantidade > 0)
 

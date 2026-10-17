@@ -7,6 +7,8 @@ import { AreaTexto, Botao, Campo, Janela, Mensagem, Selecao, mensagemErro } from
 import { usePessoasEscala } from '../escalas/dados'
 import { CHAVES_INVENTARIO, useItens } from './dados'
 
+const OUTRO = '__outro__'
+
 const TIPOS = [
   { valor: 'quebra', rotulo: 'Quebra' },
   { valor: 'perda', rotulo: 'Perda / extravio' },
@@ -37,14 +39,18 @@ export default function JanelaQuebra({
   const [responsavel, setResponsavel] = useState(colaboradorId ? 'colaborador' : 'nao_identificado')
   const [colaborador, setColaborador] = useState(colaboradorId ?? '')
   const [descricao, setDescricao] = useState('')
+  const [outroItem, setOutroItem] = useState('')
+  const outro = item === OUTRO
   const escolhido = itens.data?.find((i) => i.id === item)
   const q = lerMoeda(quantidade) ?? 0
 
   const salvar = useMutation({
     mutationFn: async () => {
       if (!item) throw new Error('Escolha o item.')
+      if (outro && !outroItem.trim()) throw new Error('Escreva qual foi o item.')
       const { error } = await supabase.rpc('registrar_quebra', {
-        p_item: item,
+        p_item: outro ? null : item,
+        p_item_descricao: outro ? outroItem.trim() : null,
         p_quantidade: q,
         p_tipo: tipo,
         p_data: data,
@@ -83,8 +89,22 @@ export default function JanelaQuebra({
           onChange={(e) => setItem(e.target.value)}
           required
           vazio="Escolha o item…"
-          opcoes={(itens.data ?? []).filter((i) => i.ativo).map((i) => ({ valor: i.id, rotulo: `${i.nome} — tem ${qtd(i.quantidade)} ${i.unidade}` }))}
+          opcoes={[
+            ...(itens.data ?? []).filter((i) => i.ativo).map((i) => ({ valor: i.id, rotulo: `${i.nome} — tem ${qtd(i.quantidade)} ${i.unidade}` })),
+            { valor: OUTRO, rotulo: 'Outro (não está no inventário)' },
+          ]}
         />
+        {outro && (
+          <Campo
+            rotulo="Qual foi o item"
+            className="sm:col-span-2"
+            value={outroItem}
+            onChange={(e) => setOutroItem(e.target.value)}
+            required
+            autoFocus
+            placeholder="Ex.: travessa de vidro do hotel, controle do ar-condicionado"
+          />
+        )}
         <Selecao rotulo="O que aconteceu" value={tipo} onChange={(e) => setTipo(e.target.value)} opcoes={TIPOS} />
         <Campo
           rotulo={`Quantidade${escolhido ? ` (${escolhido.unidade})` : ''}`}
@@ -117,7 +137,9 @@ export default function JanelaQuebra({
           placeholder="Ex.: bandeja caiu na hora do almoço; hóspede do apto 402 quebrou a taça"
         />
         <p className="text-xs text-slate-500 sm:col-span-2">
-          A quantidade sai do inventário na hora e fica no histórico do item.
+          {outro
+            ? 'Item fora do inventário: fica registrado no histórico, mas nada é descontado do estoque.'
+            : 'A quantidade sai do inventário na hora e fica no histórico do item.'}
           {responsavel === 'colaborador' && ' Também vira uma ocorrência na ficha do colaborador; se for descontar, gere o desconto lá.'}
         </p>
         {salvar.error && <div className="sm:col-span-2"><Mensagem tipo="erro">{mensagemErro(salvar.error)}</Mensagem></div>}

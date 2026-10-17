@@ -7,7 +7,10 @@ import { cpfValido, formatarCPF, soDigitos } from '../../lib/documentos-br'
 import { AreaTexto, Botao, Campo, Cartao, Carregando, Mensagem, Pagina, Selecao, mensagemErro } from '../../components/ui'
 import { SITUACOES, TIPOS_REMUNERACAO, VINCULOS, type Colaborador } from './tipos'
 import { useTurnos } from '../../lib/hooks'
-import { useHorariosTurnos } from '../escalas/dados'
+import { turnoPelaEntrada, useHorariosTurnos } from '../escalas/dados'
+import { usePermissoes } from '../../lib/permissoes'
+import { Lock } from 'lucide-react'
+import { BANCARIOS_VAZIO, CamposBancarios, linhaBancaria, paraBancarios, temDadosBancarios, useDadosBancarios, type DadosBancarios } from './AbaBancarios'
 
 type Form = Record<string, string>
 
@@ -99,9 +102,26 @@ export default function FormColaborador() {
 
   const campo = (k: string) => ({
     value: f[k],
-    onChange: (e: { target: { value: string } }) => setF((x) => ({ ...x, [k]: e.target.value })),
+    onChange: (e: { target: { value: string } }) =>
+      setF((x) => {
+        const novo = { ...x, [k]: e.target.value }
+        // A hora de entrada define o turno: antes das 12h manhã, a partir das 12h tarde, a partir das 20h noite.
+        if (k === 'horario_entrada' && e.target.value) {
+          const t = turnoPelaEntrada(e.target.value)
+          if (turnos.includes(t)) novo.turno = t
+        }
+        return novo
+      }),
     erro: erros[k],
   })
+
+  const { pode } = usePermissoes()
+  const podeBanco = pode('dados_bancarios', 'editar')
+  const [banco, setBanco] = useState<DadosBancarios>(BANCARIOS_VAZIO)
+  const bancarios = useDadosBancarios(id, pode('dados_bancarios'))
+  useEffect(() => {
+    if (bancarios.data) setBanco(paraBancarios(bancarios.data))
+  }, [bancarios.data])
 
   const salvar = useMutation({
     mutationFn: async () => {
@@ -122,12 +142,21 @@ export default function FormColaborador() {
         ? await supabase.from('colaboradores').update(dados).eq('id', id).select('id').single()
         : await supabase.from('colaboradores').insert(dados).select('id').single()
       if (error) throw error
-      return data.id as string
+      const novoId = data.id as string
+      // Dados bancários vão junto (tabela protegida, só para quem tem a permissão).
+      let bancoFalhou = false
+      if (podeBanco && (temDadosBancarios(banco) || bancarios.data)) {
+        const { error: e2 } = await supabase.from('colaboradores_bancarios').upsert(linhaBancaria(novoId, banco))
+        bancoFalhou = !!e2
+      }
+      return { novoId, bancoFalhou }
     },
-    onSuccess: (novoId) => {
+    onSuccess: ({ novoId, bancoFalhou }) => {
       qc.invalidateQueries({ queryKey: ['colaboradores'] })
       qc.invalidateQueries({ queryKey: ['colaborador', novoId] })
-      navigate(`/colaboradores/${novoId}`, { replace: true })
+      qc.invalidateQueries({ queryKey: ['bancarios', novoId] })
+      // Se o banco não salvou, abre a aba de dados bancários para tentar de novo (o cadastro já está salvo).
+      navigate(bancoFalhou ? `/colaboradores/${novoId}?aba=bancarios` : `/colaboradores/${novoId}`, { replace: true })
     },
   })
 
@@ -248,6 +277,12 @@ export default function FormColaborador() {
             <p className="mt-1 text-xs text-slate-500">Para escalas que mudam toda semana, deixe sem folga fixa e monte na tela de Escalas.</p>
           </div>}
         </Cartao>
+        {pode('dados_bancarios') && (
+          <Cartao titulo={<span className="flex items-center gap-2"><Lock className="h-4 w-4 text-acqua-dourado" /> Dados bancários</span>}>
+            <p className="mb-3 text-xs text-slate-500">Para pagar salário, vales e diárias. Visíveis só para quem tem a permissão “Dados bancários”.</p>
+            <CamposBancarios valores={banco} desabilitado={!podeBanco} aoMudar={(k, v) => setBanco((x) => ({ ...x, [k]: v }))} />
+          </Cartao>
+        )}
         <Cartao titulo="Observações">
           <AreaTexto rotulo="Observações" {...campo('observacoes')} />
         </Cartao>

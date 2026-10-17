@@ -8,7 +8,7 @@ import { descreverPeriodo, intervalo } from '../../lib/periodos'
 import { baixarCSV } from '../../lib/exportar'
 import { NOMES_DIAS, ROTULOS_TIPO_ESCALA, diaDaSemana, minutosPrevistos, resumoEscala, type TipoEscala } from '../../lib/ponto'
 import { Abas, Botao, Campo, Carregando, Confirmar, Mensagem, Vazio, cx, mensagemErro } from '../../components/ui'
-import { COR_TIPO, chaveDia, nomeCurto, porDia, useEscalas, usePessoasEscala, useRegrasPonto, type Escala, type Pessoa } from './dados'
+import { COR_TIPO, agruparPorTurno, chaveDia, nomeCurto, porDia, useEscalas, usePessoasEscala, useRegrasPonto, turnoDaPessoa, type Escala, type Pessoa } from './dados'
 import JanelaDiaEscala from './JanelaDiaEscala'
 
 type Visao = 'semana' | 'mes'
@@ -53,6 +53,8 @@ export default function GradeEscala() {
         (!termo || normalizar(`${p.nome} ${p.apelido ?? ''} ${p.funcao ?? ''}`).includes(termo)),
     )
   }, [pessoas.data, escalas.data, busca])
+  // Manhã, Tarde e Noite (pela hora de entrada da ficha), cada grupo em ordem alfabética.
+  const grupos = useMemo(() => agruparPorTurno(visiveis), [visiveis])
 
   const copiar = useMutation({
     mutationFn: async () => {
@@ -78,8 +80,9 @@ export default function GradeEscala() {
   const exportar = () =>
     baixarCSV(
       `escala-${inicio}-a-${fim}`,
-      visiveis,
+      grupos.flatMap((g) => g.pessoas),
       [
+        { titulo: 'Turno', valor: (p: Pessoa) => turnoDaPessoa(p) },
         { titulo: 'Pessoa', valor: (p: Pessoa) => p.nome },
         { titulo: 'Função', valor: (p: Pessoa) => p.funcao },
         ...dias.map((d) => ({
@@ -208,8 +211,16 @@ export default function GradeEscala() {
                 <th scope="col" className="px-3 py-2 text-right font-semibold">Horas</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-acqua-suave">
-              {visiveis.map((p) => {
+            {grupos.map((g) => (
+            <tbody key={g.turno} className="divide-y divide-acqua-suave">
+              <tr className="bg-[#FBF3DF]">
+                <th scope="colgroup" colSpan={dias.length + 2} className="px-3 py-1.5 text-left text-xs font-semibold uppercase tracking-wider text-acqua-titulo">
+                  <span className="sticky left-3">
+                    {g.turno} <span className="font-normal normal-case text-slate-500">· {g.pessoas.length} pessoa(s)</span>
+                  </span>
+                </th>
+              </tr>
+              {g.pessoas.map((p) => {
                 const total = dias.reduce((s, d) => s + minutosPrevistos(mapa.get(chaveDia(p.id, d))), 0)
                 return (
                   <tr key={p.id}>
@@ -230,6 +241,7 @@ export default function GradeEscala() {
                 )
               })}
             </tbody>
+            ))}
             <tfoot>
               <tr className="bg-acqua-gelo text-acqua-petroleo">
                 <th scope="row" className="sticky left-0 z-10 bg-acqua-gelo px-3 py-2 text-left font-semibold">Em turno</th>

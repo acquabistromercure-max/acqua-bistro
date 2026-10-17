@@ -28,6 +28,38 @@ type ComHorario = {
   escala_referencia?: string | null
 }
 
+/** Regra do dono: entra antes das 12h = Manhã; a partir das 12h = Tarde; a partir das 20h = Noite. */
+export function turnoPelaEntrada(hora: string): 'Manhã' | 'Tarde' | 'Noite' {
+  const [h] = hora.split(':').map(Number)
+  if (h >= 20) return 'Noite'
+  if (h >= 12) return 'Tarde'
+  return 'Manhã'
+}
+
+export const ORDEM_TURNOS = ['Manhã', 'Tarde', 'Noite'] as const
+
+/** Turno da pessoa para agrupar a escala: pela hora de entrada da ficha; sem hora, o turno escolhido; senão, sem turno. */
+export function turnoDaPessoa(p: Pick<Pessoa, 'horario_entrada' | 'turno'>): string {
+  if (p.horario_entrada) return turnoPelaEntrada(p.horario_entrada)
+  return p.turno || 'Sem turno definido'
+}
+
+/** Pessoas agrupadas por turno (Manhã, Tarde, Noite, outros), cada grupo em ordem alfabética. */
+export function agruparPorTurno<T extends Pick<Pessoa, 'horario_entrada' | 'turno' | 'nome'>>(pessoas: T[]): { turno: string; pessoas: T[] }[] {
+  const grupos = new Map<string, T[]>()
+  for (const p of pessoas) {
+    const t = turnoDaPessoa(p)
+    grupos.set(t, [...(grupos.get(t) ?? []), p])
+  }
+  const peso = (t: string) => {
+    const i = (ORDEM_TURNOS as readonly string[]).indexOf(t)
+    return i === -1 ? 99 : i
+  }
+  return [...grupos.entries()]
+    .sort(([a], [b]) => peso(a) - peso(b) || a.localeCompare(b))
+    .map(([turno, lista]) => ({ turno, pessoas: [...lista].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')) }))
+}
+
 /** 12x36: trabalha nos dias a um número par de dias da referência; folga nos outros. */
 export function folgaNo12x36(referencia: string, data: string) {
   const dias = Math.round((Date.parse(`${data}T12:00:00Z`) - Date.parse(`${referencia}T12:00:00Z`)) / 86_400_000)

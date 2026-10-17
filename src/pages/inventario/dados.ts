@@ -22,7 +22,8 @@ export type Item = {
 
 export type Movimento = {
   id: string
-  item_id: string
+  item_id: string | null
+  item_descricao: string | null
   data: string
   tipo: TipoMovimento
   quantidade: number

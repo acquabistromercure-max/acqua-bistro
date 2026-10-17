@@ -318,7 +318,7 @@ export function ListaMovimentos({ lista, nomeItem }: { lista: Movimento[]; nomeI
         vazio="Nenhum movimento ainda."
         colunas={[
           { titulo: 'Data', celula: (m) => formatarData(m.data) },
-          ...(nomeItem ? [{ titulo: 'Item', celula: (m: Movimento) => <b>{nomeItem(m.item_id)}</b> }] : []),
+          ...(nomeItem ? [{ titulo: 'Item', celula: (m: Movimento) => (m.item_id ? <b>{nomeItem(m.item_id)}</b> : <span><b>{m.item_descricao}</b> <span className="text-xs text-slate-500">(fora do inventário)</span></span>) }] : []),
           {
             titulo: 'O que foi',
             celula: (m) => (
@@ -385,6 +385,7 @@ function JanelaMovimento({ movimento: m, nomePessoa, aoFechar }: { movimento: Mo
         }
       >
         <dl className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-1 text-sm">
+          {m.item_descricao && (<><dt className="text-slate-500">Item</dt><dd>{m.item_descricao} (fora do inventário, não mexe no estoque)</dd></>)}
           <dt className="text-slate-500">Quantidade</dt><dd className="font-semibold">{comSinal(Number(m.quantidade))}</dd>
           {m.motivo && (<><dt className="text-slate-500">Motivo</dt><dd>{m.motivo}</dd></>)}
           {m.responsavel_tipo && (

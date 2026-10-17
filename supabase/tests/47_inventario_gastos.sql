@@ -67,6 +67,15 @@ insert into public.gastos (tipo, data, descricao, projeto, categoria, valor, pag
 select teste.afirmar((select count(*) = 3 and sum(c.valor) = 1000 and min(c.categoria) = 'Obra' from public.contas_pagar c
   join public.gastos g on g.id = c.gasto_id where g.descricao = 'Pintura do salão'), '3 parcelas de obra');
 
+-- Quebra de item que não está no inventário ("Outro"): registra e vira ocorrência, sem mexer no estoque.
+select public.registrar_quebra(null, 3, 'quebra', '2026-12-05', 'colaborador', (select id from public.colaboradores order by nome limit 1),
+  'Caiu da bandeja', 'Travessa de vidro do hotel');
+select teste.afirmar((select count(*) = 1 from public.inventario_movimentos where item_id is null and item_descricao = 'Travessa de vidro do hotel'),
+  'quebra fora do inventário registrada');
+select teste.afirmar((select count(*) = 1 from public.ocorrencias where descricao like '%Travessa de vidro do hotel (fora do inventário)%'),
+  'ocorrência da quebra fora do inventário');
+select teste.deve_falhar($$select public.registrar_quebra(null, 1, 'quebra', '2026-12-05', 'cliente', null, 'x', '')$$, 'Outro exige o nome do item');
+
 -- Operador só olha o inventário; RH não vê gastos.
 reset role; select teste.como('operador@teste.local'); set role authenticated;
 select teste.afirmar((select count(*) >= 2 from public.inventario_itens), 'operador vê o inventário');
