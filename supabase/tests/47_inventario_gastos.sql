@@ -76,3 +76,12 @@ select teste.deve_falhar($$insert into public.inventario_itens (nome) values ('x
 reset role; select teste.como('rh@teste.local'); set role authenticated;
 select teste.afirmar((select count(*) = 0 from public.gastos), 'RH não vê gastos');
 reset role;
+
+-- Limpa o que este teste criou (os testes seguintes contam contas, caixa e ocorrências).
+select set_config('acqua.fechando_contagem', 'on', false);
+delete from public.gastos where descricao in ('Panelas grandes', 'Pintura do salão');
+delete from public.inventario_contagens where titulo = 'Inventário de novembro teste';
+delete from public.ocorrencias where tipo = 'quebra';
+delete from public.inventario_itens where nome like '% teste';
+select set_config('acqua.fechando_contagem', 'off', false);
+select teste.afirmar((select count(*) = 0 from public.contas_pagar where gasto_id is not null), 'limpeza das contas');
