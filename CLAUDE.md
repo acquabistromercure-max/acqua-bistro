@@ -228,7 +228,13 @@ Feito, publicado e com migration aplicada em produção (conferido com `scripts/
    `gerar_escala_padrao` alternam trabalho/folga. Na escala, atalho "Dia sim, dia não (12x36)" marca os plantões e folga
    entre eles. Folha-ponto imprime em uma A4 (`imprimirDocumento` aceita `estilo`).
 
-Migrations aplicadas: `20261014010000` a `20261017020000`. Testes: Vitest (`src/lib/*.test.ts`) + RLS em `supabase/tests/`.
+15. **Ajustes 17/10** — cadastro do colaborador já com dados bancários (`CamposBancarios` reaproveitado da aba); ficha sem
+   a aba Escala (gerente usa Ponto e horas); escala agrupada por turno com `agruparPorTurno` (regra do dono pela hora de
+   entrada da ficha: antes das 12h Manhã, a partir das 12h Tarde, a partir das 20h Noite; sem hora, usa o campo turno) e
+   o formulário acerta o turno ao digitar a entrada; quebra de item "Outro" (`inventario_movimentos.item_id` nulo +
+   `item_descricao`): registra e gera ocorrência, sem mexer no estoque.
+
+Migrations aplicadas: `20261014010000` a `20261017030000`. Testes: Vitest (`src/lib/*.test.ts`) + RLS em `supabase/tests/`.
 
 **Planilhas reais da operação**: ficam em `planilhas-reais/` (ignorada pelo git, dados pessoais) com o resumo em
 `planilhas-reais/ANALISE.md`. Ler o resumo antes de desenhar caixa, compras, passagens e contabilidade.
