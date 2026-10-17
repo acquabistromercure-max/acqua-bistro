@@ -25,6 +25,9 @@ export type Colaborador = {
   horario_saida: string | null
   intervalo_minutos: number
   dias_folga: number[]
+  turno: string | null
+  regime: 'semanal' | '12x36'
+  escala_referencia: string | null
   criado_em: string
 }
 

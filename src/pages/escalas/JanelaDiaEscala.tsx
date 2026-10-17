@@ -7,7 +7,7 @@ import { useTurnos } from '../../lib/hooks'
 import { formatarData } from '../../lib/formatos'
 import { NOMES_DIAS, diaDaSemana, horaCurta, resumoEscala, type TipoEscala } from '../../lib/ponto'
 import { AreaTexto, Botao, Campo, Janela, Mensagem, Selecao, cx, mensagemErro } from '../../components/ui'
-import { TIPOS_ESCALA, escalaDoDia, nomeCurto, useHorariosTurnos, type Escala, type Pessoa } from './dados'
+import { TIPOS_ESCALA, escalaDoDia, folgaNo12x36, nomeCurto, useHorariosTurnos, type Escala, type Pessoa } from './dados'
 
 const MESES_CURTOS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
@@ -38,7 +38,8 @@ export default function JanelaDiaEscala({
   // Dia ainda vazio: começa com o horário fixo da ficha (ou folga, se for dia de folga fixa).
   const sugerida = atual ?? escalaDoDia(null, pessoa, data)
   const [tipo, setTipo] = useState<TipoEscala>(sugerida?.tipo ?? 'turno')
-  const [turno, setTurno] = useState(atual?.turno ?? '')
+  const [turno, setTurno] = useState(atual?.turno ?? (atual ? '' : pessoa.turno ?? ''))
+  const [folgaNoMeio, setFolgaNoMeio] = useState(false)
   const [inicio, setInicio] = useState(horaCurta(sugerida?.hora_inicio))
   const [fim, setFim] = useState(horaCurta(sugerida?.hora_fim))
   const [intervalo, setIntervalo] = useState(String(sugerida?.intervalo_minutos ?? pessoa.intervalo_minutos ?? 60))
@@ -75,6 +76,14 @@ export default function JanelaDiaEscala({
         observacao: observacao.trim() || null,
       }
       const linhas = [data, ...repetir].map((d) => ({ ...dados, data: d }))
+      // 12x36: os dias entre os plantões marcados viram folga.
+      if (folgaNoMeio && ehTurno) {
+        const marcados = [data, ...repetir].sort()
+        const folga = { colaborador_id: pessoa.id, tipo: 'folga' as const, turno: null, hora_inicio: null, hora_fim: null, intervalo_minutos: 0, observacao: null }
+        dias
+          .filter((d) => d > marcados[0] && d < marcados[marcados.length - 1] && !marcados.includes(d))
+          .forEach((d) => linhas.push({ ...folga, data: d }))
+      }
       const { error } = await supabase.from('escalas').upsert(linhas, { onConflict: 'colaborador_id,data' })
       if (error) throw error
     },
@@ -200,6 +209,18 @@ export default function JanelaDiaEscala({
             <fieldset className="sm:col-span-2">
               <legend className="mb-1 text-sm font-semibold text-acqua-titulo">Repetir também nos dias</legend>
               <div className="mb-2 flex flex-wrap gap-1.5">
+                {tipo === 'turno' && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRepetir(outrosDias.filter((d) => !folgaNo12x36(data, d)))
+                      setFolgaNoMeio(true)
+                    }}
+                    className="rounded-full border border-acqua-dourado bg-[#FBF3DF] px-2.5 py-0.5 text-xs font-semibold text-acqua-titulo hover:brightness-95"
+                  >
+                    Dia sim, dia não (12x36)
+                  </button>
+                )}
                 {[
                   { rotulo: `Toda ${NOMES_DIAS[diaDaSemana(data)]}`, dias: outrosDias.filter((d) => diaDaSemana(d) === diaDaSemana(data)) },
                   { rotulo: 'Seg a sex', dias: outrosDias.filter((d) => diaDaSemana(d) <= 5) },
@@ -209,7 +230,10 @@ export default function JanelaDiaEscala({
                   <button
                     key={a.rotulo}
                     type="button"
-                    onClick={() => setRepetir(a.dias)}
+                    onClick={() => {
+                      setRepetir(a.dias)
+                      setFolgaNoMeio(false)
+                    }}
                     className="rounded-full border border-[#C4D3E8] bg-white px-2.5 py-0.5 text-xs font-semibold text-acqua-titulo hover:bg-acqua-suave"
                   >
                     {a.rotulo}
@@ -254,6 +278,12 @@ export default function JanelaDiaEscala({
               <p className="mt-1 text-xs text-slate-500">
                 Em dourado, o dia que você está editando. {repetir.length > 0 && <b>{repetir.length} dia(s) marcado(s). </b>}
               </p>
+              {tipo === 'turno' && repetir.length > 0 && (
+                <label className="mt-2 flex items-center gap-2 text-sm text-acqua-titulo">
+                  <input type="checkbox" checked={folgaNoMeio} onChange={(e) => setFolgaNoMeio(e.target.checked)} />
+                  Marcar <b>folga</b> nos dias entre os marcados (12x36)
+                </label>
+              )}
               <p className="mt-1 text-xs text-slate-500">Os dias marcados ficam iguais a este (substitui o que já estiver lá).</p>
             </fieldset>
           )}

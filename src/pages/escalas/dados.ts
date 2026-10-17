@@ -14,9 +14,25 @@ export type Pessoa = {
   horario_saida?: string | null
   intervalo_minutos?: number
   dias_folga?: number[]
+  turno?: string | null
+  regime?: 'semanal' | '12x36'
+  escala_referencia?: string | null
 }
 
-type ComHorario = { horario_entrada?: string | null; horario_saida?: string | null; intervalo_minutos?: number; dias_folga?: number[] }
+type ComHorario = {
+  horario_entrada?: string | null
+  horario_saida?: string | null
+  intervalo_minutos?: number
+  dias_folga?: number[]
+  regime?: 'semanal' | '12x36'
+  escala_referencia?: string | null
+}
+
+/** 12x36: trabalha nos dias a um número par de dias da referência; folga nos outros. */
+export function folgaNo12x36(referencia: string, data: string) {
+  const dias = Math.round((Date.parse(`${data}T12:00:00Z`) - Date.parse(`${referencia}T12:00:00Z`)) / 86_400_000)
+  return Math.abs(dias) % 2 === 1
+}
 
 /**
  * Escala que vale para o dia: a lançada na grade ou, se não houver, a do horário fixo da ficha
@@ -26,7 +42,9 @@ export function escalaDoDia(escala: DiaEscala | null | undefined, pessoa: ComHor
   if (escala) return escala
   if (!pessoa?.horario_entrada || !pessoa.horario_saida) return null
   const dow = new Date(`${data}T12:00:00Z`).getUTCDay() || 7
-  if ((pessoa.dias_folga ?? []).includes(dow)) return { tipo: 'folga', hora_inicio: null, hora_fim: null, intervalo_minutos: 0 }
+  const folga =
+    pessoa.regime === '12x36' && pessoa.escala_referencia ? folgaNo12x36(pessoa.escala_referencia, data) : (pessoa.dias_folga ?? []).includes(dow)
+  if (folga) return { tipo: 'folga', hora_inicio: null, hora_fim: null, intervalo_minutos: 0 }
   return { tipo: 'turno', hora_inicio: pessoa.horario_entrada, hora_fim: pessoa.horario_saida, intervalo_minutos: pessoa.intervalo_minutos ?? 60 }
 }
 

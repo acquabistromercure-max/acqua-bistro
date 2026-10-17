@@ -6,6 +6,8 @@ import { lerMoeda } from '../../lib/formatos'
 import { cpfValido, formatarCPF, soDigitos } from '../../lib/documentos-br'
 import { AreaTexto, Botao, Campo, Cartao, Carregando, Mensagem, Pagina, Selecao, mensagemErro } from '../../components/ui'
 import { SITUACOES, TIPOS_REMUNERACAO, VINCULOS, type Colaborador } from './tipos'
+import { useTurnos } from '../../lib/hooks'
+import { useHorariosTurnos } from '../escalas/dados'
 
 type Form = Record<string, string>
 
@@ -14,7 +16,7 @@ const VAZIO: Form = {
   contato_emergencia_nome: '', contato_emergencia_telefone: '', funcao: '', vinculo: 'clt', situacao: 'ativo',
   data_admissao: '', data_desligamento: '', motivo_desligamento: '', jornada_descricao: '', jornada_semanal_horas: '',
   tipo_remuneracao: 'mensal', remuneracao: '', observacoes: '',
-  horario_entrada: '', horario_saida: '', intervalo_minutos: '60',
+  horario_entrada: '', horario_saida: '', intervalo_minutos: '60', turno: '', regime: 'semanal', escala_referencia: '',
 }
 
 const DIAS = [
@@ -44,6 +46,7 @@ export function validarColaborador(f: Form): Record<string, string> {
   if (f.data_desligamento && f.data_admissao && f.data_desligamento < f.data_admissao)
     erros.data_desligamento = 'Desligamento antes da admissão.'
   if (f.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) erros.email = 'E-mail inválido.'
+  if (f.regime === '12x36' && !f.escala_referencia) erros.escala_referencia = 'Informe um dia em que a pessoa trabalha.'
   return erros
 }
 
@@ -56,6 +59,26 @@ export default function FormColaborador() {
   const [f, setF] = useState<Form>(ehDiarista ? { ...VAZIO, vinculo: 'diarista', tipo_remuneracao: 'diaria' } : VAZIO)
   const [folgas, setFolgas] = useState<number[]>([])
   const [erros, setErros] = useState<Record<string, string>>({})
+  const turnos = useTurnos()
+  const horarios = useHorariosTurnos()
+  // Escolher o turno já sugere o horário dele (configurado em Escalas), que pode ser ajustado.
+  const escolherTurno = (t: string) => {
+    const h = horarios[t]
+    setF((x) => ({
+      ...x,
+      turno: t,
+      ...(h ? { horario_entrada: h.inicio, horario_saida: h.fim, intervalo_minutos: String(h.intervalo) } : {}),
+    }))
+  }
+  const proximosPlantoes = (() => {
+    if (f.regime !== '12x36' || !f.escala_referencia) return ''
+    const base = new Date(`${f.escala_referencia}T12:00:00Z`)
+    return Array.from({ length: 6 }, (_, i) => {
+      const d = new Date(base)
+      d.setUTCDate(d.getUTCDate() + i * 2)
+      return d.toISOString().slice(8, 10) + '/' + d.toISOString().slice(5, 7)
+    }).join(', ')
+  })()
 
   const atual = useQuery({
     queryKey: ['colaborador', id],
@@ -88,7 +111,9 @@ export default function FormColaborador() {
       dados.remuneracao = f.remuneracao ? lerMoeda(f.remuneracao) : null
       dados.jornada_semanal_horas = f.jornada_semanal_horas ? Number(f.jornada_semanal_horas.replace(',', '.')) : null
       dados.intervalo_minutos = Number(f.intervalo_minutos) || 0
-      dados.dias_folga = folgas
+      dados.dias_folga = f.regime === '12x36' ? [] : folgas
+      dados.regime = f.regime || 'semanal'
+      if (f.regime !== '12x36') dados.escala_referencia = null
       if (f.situacao !== 'desligado') {
         dados.data_desligamento = null
         dados.motivo_desligamento = null
@@ -166,12 +191,39 @@ export default function FormColaborador() {
           <p className="mb-3 text-xs text-slate-500">
             Usado para sugerir a escala (botão “Preencher pelo horário fixo”) e como jornada prevista na folha-ponto quando o dia não tem escala.
           </p>
+          <div className="mb-3 grid gap-3 sm:grid-cols-3">
+            <Selecao
+              rotulo="Turno"
+              value={f.turno}
+              onChange={(e) => escolherTurno(e.target.value)}
+              vazio="—"
+              opcoes={turnos.map((t) => ({ valor: t, rotulo: t }))}
+              ajuda="Preenche o horário sugerido do turno."
+            />
+            <Selecao
+              rotulo="Regime de folgas"
+              {...campo('regime')}
+              opcoes={[
+                { valor: 'semanal', rotulo: 'Folgas fixas na semana (6x1, 5x2...)' },
+                { valor: '12x36', rotulo: '12x36 — dia sim, dia não' },
+              ]}
+            />
+            {f.regime === '12x36' && (
+              <Campo
+                rotulo="Um dia em que trabalha"
+                type="date"
+                required
+                {...campo('escala_referencia')}
+                ajuda={proximosPlantoes ? `Plantões: ${proximosPlantoes}...` : 'A partir dele, alterna trabalho e folga.'}
+              />
+            )}
+          </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <Campo rotulo="Entrada" type="time" {...campo('horario_entrada')} />
             <Campo rotulo="Saída" type="time" {...campo('horario_saida')} ajuda="Pode passar da meia-noite." />
             <Campo rotulo="Intervalo (minutos)" type="number" min={0} max={600} {...campo('intervalo_minutos')} />
           </div>
-          <div className="mt-3">
+          {f.regime !== '12x36' && <div className="mt-3">
             <p className="mb-1 text-sm font-semibold text-acqua-titulo">Folgas fixas</p>
             <div className="flex flex-wrap gap-1.5">
               {DIAS.map((d) => {
@@ -193,8 +245,8 @@ export default function FormColaborador() {
                 )
               })}
             </div>
-            <p className="mt-1 text-xs text-slate-500">Para 12x36 ou escalas que mudam, deixe sem folga fixa e monte na tela de Escalas.</p>
-          </div>
+            <p className="mt-1 text-xs text-slate-500">Para escalas que mudam toda semana, deixe sem folga fixa e monte na tela de Escalas.</p>
+          </div>}
         </Cartao>
         <Cartao titulo="Observações">
           <AreaTexto rotulo="Observações" {...campo('observacoes')} />

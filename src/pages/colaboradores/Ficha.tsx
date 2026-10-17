@@ -112,12 +112,15 @@ export default function Ficha() {
               <Info rotulo="Remuneração">
                 {col.remuneracao != null && `${formatarMoeda(col.remuneracao)} (${rotulo(TIPOS_REMUNERACAO, col.tipo_remuneracao)})`}
               </Info>
+              <Info rotulo="Turno">{col.turno}</Info>
               <Info rotulo="Horário de trabalho">
                 {col.horario_entrada &&
                   `${col.horario_entrada.slice(0, 5)}–${col.horario_saida?.slice(0, 5) ?? ''}${col.intervalo_minutos ? ` · intervalo ${col.intervalo_minutos} min` : ''}`}
               </Info>
-              <Info rotulo="Folgas fixas">
-                {(col.dias_folga ?? []).map((d) => ['', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'][d]).join(', ')}
+              <Info rotulo="Folgas">
+                {col.regime === '12x36'
+                  ? `12x36 (dia sim, dia não)${col.escala_referencia ? ` · trabalha em ${formatarData(col.escala_referencia)}` : ''}`
+                  : (col.dias_folga ?? []).map((d) => ['', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'][d]).join(', ')}
               </Info>
               <Info rotulo="Horas por semana">{col.jornada_semanal_horas}</Info>
               <Info rotulo="Jornada">{col.jornada_descricao}</Info>
