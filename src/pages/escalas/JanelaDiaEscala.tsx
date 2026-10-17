@@ -9,6 +9,8 @@ import { NOMES_DIAS, diaDaSemana, horaCurta, resumoEscala, type TipoEscala } fro
 import { AreaTexto, Botao, Campo, Janela, Mensagem, Selecao, cx, mensagemErro } from '../../components/ui'
 import { TIPOS_ESCALA, escalaDoDia, nomeCurto, useHorariosTurnos, type Escala, type Pessoa } from './dados'
 
+const MESES_CURTOS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+
 /** Editar o dia de uma pessoa na escala, repetir em outros dias, trocar com um colega ou tirar o dia. */
 export default function JanelaDiaEscala({
   pessoa,
@@ -197,25 +199,61 @@ export default function JanelaDiaEscala({
           {podeSalvar && pode('escalas', 'editar') && outrosDias.length > 0 && (
             <fieldset className="sm:col-span-2">
               <legend className="mb-1 text-sm font-semibold text-acqua-titulo">Repetir também nos dias</legend>
-              <div className="flex flex-wrap gap-1.5">
-                {outrosDias.map((d) => {
+              <div className="mb-2 flex flex-wrap gap-1.5">
+                {[
+                  { rotulo: `Toda ${NOMES_DIAS[diaDaSemana(data)]}`, dias: outrosDias.filter((d) => diaDaSemana(d) === diaDaSemana(data)) },
+                  { rotulo: 'Seg a sex', dias: outrosDias.filter((d) => diaDaSemana(d) <= 5) },
+                  { rotulo: 'Todos', dias: outrosDias },
+                  { rotulo: 'Limpar', dias: [] },
+                ].map((a) => (
+                  <button
+                    key={a.rotulo}
+                    type="button"
+                    onClick={() => setRepetir(a.dias)}
+                    className="rounded-full border border-[#C4D3E8] bg-white px-2.5 py-0.5 text-xs font-semibold text-acqua-titulo hover:bg-acqua-suave"
+                  >
+                    {a.rotulo}
+                  </button>
+                ))}
+              </div>
+              {/* Calendário: colunas de segunda a domingo, cada data embaixo do seu dia da semana. */}
+              <div className="grid grid-cols-7 gap-1 text-center">
+                {NOMES_DIAS.slice(1).map((n) => (
+                  <div key={n} className="pb-1 text-[11px] font-semibold uppercase text-slate-500">{n}</div>
+                ))}
+                {Array.from({ length: diaDaSemana(dias[0]) - 1 }, (_, i) => <div key={`vazio-${i}`} />)}
+                {dias.map((d) => {
+                  const esteDia = d === data
                   const marcado = repetir.includes(d)
+                  const inicioMes = d.endsWith('-01') || d === dias[0]
                   return (
                     <button
                       key={d}
                       type="button"
+                      disabled={esteDia}
                       aria-pressed={marcado}
+                      aria-label={`${NOMES_DIAS[diaDaSemana(d)]} ${formatarData(d)}`}
+                      title={esteDia ? 'Dia que você está editando' : undefined}
                       onClick={() => setRepetir(marcado ? repetir.filter((x) => x !== d) : [...repetir, d])}
                       className={cx(
-                        'rounded-lg border px-2 py-1 text-xs font-semibold',
-                        marcado ? 'border-acqua-petroleo bg-acqua-titulo text-white' : 'border-[#C4D3E8] bg-white text-acqua-titulo hover:bg-acqua-suave',
+                        'flex h-10 flex-col items-center justify-center rounded-lg border text-sm font-semibold tabular-nums leading-none',
+                        esteDia
+                          ? 'cursor-default border-acqua-dourado bg-[#FBF3DF] text-acqua-titulo'
+                          : marcado
+                            ? 'border-acqua-petroleo bg-acqua-titulo text-white'
+                            : 'border-[#C4D3E8] bg-white text-acqua-titulo hover:bg-acqua-suave',
+                        diaDaSemana(d) >= 6 && !marcado && !esteDia && 'bg-slate-50',
                       )}
                     >
-                      {NOMES_DIAS[diaDaSemana(d)]} {d.slice(8, 10)}
+                      {Number(d.slice(8, 10))}
+                      {inicioMes && <span className="mt-0.5 text-[9px] font-normal opacity-70">{MESES_CURTOS[Number(d.slice(5, 7)) - 1]}</span>}
                     </button>
                   )
                 })}
               </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Em dourado, o dia que você está editando. {repetir.length > 0 && <b>{repetir.length} dia(s) marcado(s). </b>}
+              </p>
               <p className="mt-1 text-xs text-slate-500">Os dias marcados ficam iguais a este (substitui o que já estiver lá).</p>
             </fieldset>
           )}
