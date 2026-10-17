@@ -7,7 +7,7 @@ import { chaveDaVendaCafe } from '../caixa/dados'
 
 export type Fonte = 'credito' | 'debito' | 'pix' | 'dinheiro' | 'conta_assinada' | 'outros' | 'hotel' | 'eventos'
 export type Receita = { data: string; valor: number; fonte: Fonte; taxa: number }
-export type Despesa = { data: string; valor: number; categoria: string; quem: string; origem: 'Contas' | 'Cartão' | 'Caixa' | 'Diárias' }
+export type Despesa = { data: string; valor: number; categoria: string; quem: string; origem: 'Contas' | 'Cartão' | 'Caixa' | 'Diárias' | 'Gastos' }
 export type DiaCafe = { data: string; hospedes: number; servidos: number; tickets: number; valor: number }
 
 export const ROTULO_FONTE: Record<Fonte, string> = {
@@ -35,7 +35,7 @@ export function useDadosFinanceiros(inicio: string, fim: string, taxas: Taxas) {
     queryKey: ['painel-financeiro', inicio, fim, JSON.stringify(taxas)],
     staleTime: 60_000,
     queryFn: async () => {
-      const [caixa, vendasCafe, cafeDias, ajustes, bordero, eventos, contas, fornecedores, comprasCartao, cartoes, movimentos, diarias, lancamentos] = await Promise.all([
+      const [caixa, vendasCafe, cafeDias, ajustes, bordero, eventos, contas, fornecedores, comprasCartao, cartoes, movimentos, diarias, lancamentos, gastos] = await Promise.all([
         linhas<{ data: string; vendas: Valores }>(supabase.from('caixa_dias').select('data, vendas').gte('data', inicio).lte('data', fim)),
         linhas<{ recebido_em: string; forma: string | null; bandeira: string | null; valor_total: number }>(
           supabase.from('cafe_vendas').select('recebido_em, forma, bandeira, valor_total').eq('pago', true).eq('situacao', 'registrado').gte('recebido_em', inicio).lte('recebido_em', fim),
@@ -54,14 +54,18 @@ export function useDadosFinanceiros(inicio: string, fim: string, taxas: Taxas) {
           supabase.from('compras_cartao').select('cartao_id, data, valor_total, parcelas, categoria, estabelecimento, situacao').neq('situacao', 'cancelado'),
         ),
         linhas<{ id: string; fechamento_dia: number; vencimento_dia: number }>(supabase.from('cartoes').select('id, fechamento_dia, vencimento_dia')),
-        linhas<{ data: string; valor: number; categoria: string; fornecedor: string | null; motivo: string; sentido: string; situacao: string }>(
-          supabase.from('caixa_movimentos').select('data, valor, categoria, fornecedor, motivo, sentido, situacao').eq('sentido', 'saida').eq('situacao', 'registrado').gte('data', inicio).lte('data', fim),
+        linhas<{ data: string; valor: number; categoria: string; fornecedor: string | null; motivo: string; sentido: string; situacao: string; gasto_id: string | null }>(
+          supabase.from('caixa_movimentos').select('data, valor, categoria, fornecedor, motivo, sentido, situacao, gasto_id').eq('sentido', 'saida').eq('situacao', 'registrado').gte('data', inicio).lte('data', fim),
         ),
         linhas<{ data: string; valor: number; situacao: string; funcao: string | null }>(
           supabase.from('diarias').select('data, valor, situacao, funcao').in('situacao', ['trabalhada', 'aprovada', 'paga']).gte('data', inicio).lte('data', fim),
         ),
         linhas<{ data: string; valor: number; tipo: string; situacao: string }>(
           supabase.from('lancamentos_colaborador').select('data, valor, tipo, situacao').in('tipo', ['vale', 'adiantamento']).neq('situacao', 'cancelado').gte('data', inicio).lte('data', fim),
+        ),
+        // Obra/manutenção/investimento: os pagos direto entram daqui; os demais já vêm do caixa, cartão ou contas.
+        linhas<{ id: string; tipo: string; data: string; valor: number; descricao: string; prestador: string | null; fornecedor_id: string | null; pagamento: string }>(
+          supabase.from('gastos').select('id, tipo, data, valor, descricao, prestador, fornecedor_id, pagamento').eq('situacao', 'registrado').gte('data', inicio).lte('data', fim),
         ),
       ])
 
@@ -104,9 +108,24 @@ export function useDadosFinanceiros(inicio: string, fim: string, taxas: Taxas) {
           if (data >= inicio && data <= fim) despesas.push({ data, valor: p.valor, categoria: c.categoria, quem: c.estabelecimento, origem: 'Cartão' })
         }
       })
+      const ROTULO_GASTO: Record<string, string> = { obra: 'Obra', manutencao: 'Manutenção', investimento: 'Investimento' }
+      const tipoGasto = new Map(gastos.map((g) => [g.id, ROTULO_GASTO[g.tipo] ?? 'Outros']))
       movimentos
         .filter((m) => ['compra', 'despesa', 'passagem'].includes(m.categoria))
-        .forEach((m) => despesas.push({ data: m.data, valor: Number(m.valor), categoria: m.categoria === 'passagem' ? 'Pessoal' : m.categoria === 'compra' ? 'Insumos' : 'Despesas do caixa', quem: m.fornecedor || m.motivo, origem: 'Caixa' }))
+        .forEach((m) =>
+          despesas.push({
+            data: m.data,
+            valor: Number(m.valor),
+            categoria: (m.gasto_id && tipoGasto.get(m.gasto_id)) || (m.categoria === 'passagem' ? 'Pessoal' : m.categoria === 'compra' ? 'Insumos' : 'Despesas do caixa'),
+            quem: m.fornecedor || m.motivo,
+            origem: 'Caixa',
+          }),
+        )
+      gastos
+        .filter((g) => g.pagamento === 'pago')
+        .forEach((g) =>
+          despesas.push({ data: g.data, valor: Number(g.valor), categoria: ROTULO_GASTO[g.tipo] ?? 'Outros', quem: (g.fornecedor_id && nomeF.get(g.fornecedor_id)) || g.prestador || g.descricao, origem: 'Gastos' }),
+        )
       diarias.forEach((d) => despesas.push({ data: d.data, valor: Number(d.valor), categoria: 'Pessoal', quem: `Diária${d.funcao ? ` · ${d.funcao}` : ''}`, origem: 'Diárias' }))
 
       const adiantamentos = lancamentos.map((l) => ({ data: l.data, valor: Number(l.valor) }))

@@ -64,7 +64,7 @@ select teste.afirmar((select situacao = 'cancelado' from public.caixa_movimentos
 -- Obra a pagar em 3 vezes vira 3 contas.
 insert into public.gastos (tipo, data, descricao, projeto, categoria, valor, pagamento, forma, parcelas, vencimento, prestador)
   values ('obra', '2026-11-20', 'Pintura do salão', 'Reforma do salão', 'Pintura', 1000, 'a_pagar', 'boleto', 3, '2026-12-10', 'João Pintor');
-select teste.afirmar((select count(*) = 3 and sum(valor) = 1000 and min(categoria) = 'Obra' from public.contas_pagar c
+select teste.afirmar((select count(*) = 3 and sum(c.valor) = 1000 and min(c.categoria) = 'Obra' from public.contas_pagar c
   join public.gastos g on g.id = c.gasto_id where g.descricao = 'Pintura do salão'), '3 parcelas de obra');
 
 -- Operador só olha o inventário; RH não vê gastos.

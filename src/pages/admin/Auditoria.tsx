@@ -52,6 +52,10 @@ export const NOMES_TABELAS: Record<string, string> = {
   eventos: 'Eventos',
   evento_consumos: 'Consumos de evento',
   documentos: 'Documentos',
+  inventario_itens: 'Itens do inventário',
+  inventario_movimentos: 'Movimentos do inventário',
+  inventario_contagens: 'Contagens do inventário',
+  gastos: 'Obra, manutenção e investimentos',
 }
 
 const POR_PAGINA = 50

@@ -60,6 +60,7 @@ export const TIPOS_OCORRENCIA = [
   { valor: 'advertencia', rotulo: 'Advertência' },
   { valor: 'ocorrencia', rotulo: 'Ocorrência' },
   { valor: 'elogio', rotulo: 'Elogio' },
+  { valor: 'quebra', rotulo: 'Quebra / perda (inventário)' },
 ]
 
 export const TIPOS_LANCAMENTO = [

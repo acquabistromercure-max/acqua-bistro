@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
+import { PackageMinus, Plus } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { usePermissoes } from '../../lib/permissoes'
 import { formatarData, formatarMoeda, hojeISO } from '../../lib/formatos'
@@ -8,6 +8,7 @@ import { useNomesUsuarios } from '../../lib/hooks'
 import { AreaTexto, Botao, Campo, Carregando, Janela, Mensagem, Selecao, Tabela, mensagemErro } from '../../components/ui'
 import { BotaoExcluir, JanelaCancelar, SeloSituacao } from '../../components/registros'
 import { TIPOS_OCORRENCIA, rotulo, type Colaborador } from './tipos'
+import JanelaQuebra from '../inventario/JanelaQuebra'
 
 export type Ocorrencia = {
   id: string
@@ -29,6 +30,7 @@ export default function AbaOcorrencias({ colaborador }: { colaborador: Colaborad
   const { pode } = usePermissoes()
   const nome = useNomesUsuarios()
   const [nova, setNova] = useState(false)
+  const [quebra, setQuebra] = useState(false)
   const [aberta, setAberta] = useState<Ocorrencia | null>(null)
   const [cancelando, setCancelando] = useState(false)
 
@@ -62,10 +64,16 @@ export default function AbaOcorrencias({ colaborador }: { colaborador: Colaborad
     <>
       <div className="mb-3 flex items-center justify-between gap-2">
         <p className="text-sm text-slate-600">Registrar uma ocorrência não gera desconto automático. Depois de aprovada, abra a ocorrência para lançar o desconto.</p>
-        {pode('ocorrencias', 'criar') && (
-          <Botao icone={<Plus className="h-4 w-4" />} onClick={() => setNova(true)}>Nova ocorrência</Botao>
-        )}
+        <div className="flex shrink-0 flex-wrap gap-2">
+          {pode('inventario', 'aprovar') && (
+            <Botao variante="secundario" icone={<PackageMinus className="h-4 w-4" />} onClick={() => setQuebra(true)}>Quebra/perda</Botao>
+          )}
+          {pode('ocorrencias', 'criar') && (
+            <Botao icone={<Plus className="h-4 w-4" />} onClick={() => setNova(true)}>Nova ocorrência</Botao>
+          )}
+        </div>
       </div>
+      {quebra && <JanelaQuebra colaboradorId={colaborador.id} aoFechar={() => { setQuebra(false); atualizar() }} />}
       {lista.isLoading ? (
         <Carregando />
       ) : (
@@ -242,7 +250,7 @@ function NovaOcorrencia({ colaborador, aoFechar, aoSalvar }: { colaborador: Cola
           if (descricao.trim()) salvar.mutate()
         }}
       >
-        <Selecao rotulo="Tipo" value={tipo} onChange={(e) => setTipo(e.target.value)} opcoes={TIPOS_OCORRENCIA} />
+        <Selecao rotulo="Tipo" value={tipo} onChange={(e) => setTipo(e.target.value)} opcoes={TIPOS_OCORRENCIA.filter((t) => t.valor !== 'quebra')} />
         <Campo rotulo="Data" type="date" value={data} onChange={(e) => setData(e.target.value)} required />
         {tipo === 'atraso' && <Campo rotulo="Minutos de atraso" type="number" min={1} value={minutos} onChange={(e) => setMinutos(e.target.value)} />}
         {tipo === 'atestado' && <Campo rotulo="Dias de atestado" type="number" min={1} value={dias} onChange={(e) => setDias(e.target.value)} />}
