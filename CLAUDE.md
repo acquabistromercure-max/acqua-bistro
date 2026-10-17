@@ -223,7 +223,12 @@ Feito, publicado e com migration aplicada em produção (conferido com `scripts/
    Obra/Manutenção/Investimento). Anexos no bucket privado `gastos`. Também: prévia do link no WhatsApp
    (`og:*` em `index.html`, imagem `public/compartilhar.jpg` 1200×630).
 
-Migrations aplicadas: `20261014010000` a `20261017010000`. Testes: Vitest (`src/lib/*.test.ts`) + RLS em `supabase/tests/`.
+14. **Turno e 12x36** (17/10/2026) — ficha com `turno` (lista da config `turnos`; sugere o horário de `horarios_turnos`),
+   `regime` semanal/12x36 + `escala_referencia` (um dia trabalhado); `escalaDoDia`, `folgaNo12x36` e
+   `gerar_escala_padrao` alternam trabalho/folga. Na escala, atalho "Dia sim, dia não (12x36)" marca os plantões e folga
+   entre eles. Folha-ponto imprime em uma A4 (`imprimirDocumento` aceita `estilo`).
+
+Migrations aplicadas: `20261014010000` a `20261017020000`. Testes: Vitest (`src/lib/*.test.ts`) + RLS em `supabase/tests/`.
 
 **Planilhas reais da operação**: ficam em `planilhas-reais/` (ignorada pelo git, dados pessoais) com o resumo em
 `planilhas-reais/ANALISE.md`. Ler o resumo antes de desenhar caixa, compras, passagens e contabilidade.
